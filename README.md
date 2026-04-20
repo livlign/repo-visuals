@@ -1,5 +1,7 @@
 # repo-visuals
 
+![repo-visuals demo](assets/hero.gif)
+
 A Claude Code skill for producing hero visuals — **animated GIF** or **static PNG** — for GitHub repositories.
 
 The skill scans the target repo, recommends a format (animated vs static) based on the repo's identity, then generates bespoke HTML per repo via a structured discovery dialog, previews it in the browser, and exports to an optimized GIF or retina PNG. The user picks an operating mode at the start (Auto / Semi-auto / Manual) to control how many decisions the skill asks before shipping.
