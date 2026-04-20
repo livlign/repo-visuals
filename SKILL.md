@@ -49,8 +49,9 @@ Gather as much as possible before asking the user anything. Goal: Claude should 
 - Recent git log (last 10 commits) — what's active.
 - If GitHub: stars, topics, releases, open issues count.
 - If `ast-graph` is available locally and the repo has supported languages: run `scan` + `hotspots` + `symbol` on top-level exports for structural inventory.
+- **Count the real inventory** — if the repo exposes a collection (tools, commands, pages, themes, plugins, routes), count them from source (route files, `src/tools/*`, CLI command registrations, etc.). Do not estimate from the README. This number is used later: any hero that says "all", "every", "the whole", or shows a grid meant to represent scope must match this count — or explicitly frame itself as a sample ("10 of 30 shown", scroll affordance, "30+"). An undercount reads as a broken promise.
 
-Summarize findings back to the user in ~6–10 bullets so they can correct misreadings early.
+Summarize findings back to the user in ~6–10 bullets so they can correct misreadings early. Include the inventory count when one exists.
 
 ### 1.4 Direction questions (after the scan summary)
 
@@ -125,6 +126,7 @@ Move to the build phase when all six are settled:
 - [ ] Placement agreed (README / website / social / slide / other)
 - [ ] Duration chosen — animated only (typical: 15–25s loop; default 20s); skip for static
 - [ ] Dimensions chosen (see §1.7 — NOT a fixed default; pick per repo and placement)
+- [ ] Real inventory count captured from §1.3 scan (if the repo has a countable collection)
 
 Write the brief back to the user in a compact block. Wait for **"go"** before writing any HTML.
 
@@ -266,6 +268,17 @@ When you spot a mismatch, flag it proactively ("the README leans 'fast' but the 
 ---
 
 ## Phase 4 — Export
+
+### 4.0 Entry gate — do not skip
+
+Before you export anything, confirm **all four**:
+
+1. The user has actually **seen the artifact running** in a browser (or a rendered screenshot for static).
+2. There has been at least **one round of iteration** after that first look — typography, pacing, copy, density, *something*. A first-draft that the user says is fine usually isn't; prompt specifically for what to improve.
+3. For any hero claim about scope (*"all"*, *"every"*, *"the whole"*, or any grid/list meant to represent the repo), the on-screen reality **matches the real inventory** captured in §1.3. If the real count exceeds the grid, the grid must explicitly frame itself as a sample ("10 of 30 shown", scrolling affordance, "30+") — not silently undercount.
+4. User has explicitly said ship / go / export. Not just "looks good" — an intent to export.
+
+Export is the **last** step, not a midpoint. A capture→encode→evaluate cycle feels productive but burns the user's patience on a draft that wasn't ready. When in doubt between "export this pass" and "one more iteration", prefer the iteration.
 
 ### 4.1 Prerequisites (ask before installing)
 
@@ -499,19 +512,60 @@ Use the labels, not bare numbers. A "3" alone is noise; "3 / OK" is meaningful.
 
 Assemble in four steps:
 
-1. **Run code eval** — `node scripts/evaluate.js <path-to-hero.gif>` → emits a JSON scorecard for the 5 Code rows.
-2. **Run AI eval** — re-open the exported GIF and HTML with vision and rate the 4 AI rows blind. Use this fixed prompt so AI ratings stay consistent across runs:
+1. **Run code eval** — `node scripts/evaluate.js <path-to-hero.gif-or-png>` → emits a JSON scorecard.
+2. **Run AI eval** — extract 4–6 keyframes from the GIF first (`ffmpeg -ss <t> -i hero.gif -update 1 -frames:v 1 frame.png` at evenly spaced times), then re-read each frame with vision, blind to prior chat. Use this fixed prompt — **anchored, evidence-required, and fed the repo's real inventory** so factual drift is catchable:
 
-   > You are evaluating a hero GIF for the repo `<owner/repo>`. README excerpt: `<first 40 lines>`. Rate Legibility, Scene clarity, Voice match, and Intent delivery on the 1–5 Poor/Weak/OK/Strong/Excellent scale, each with a one-sentence justification. Do not reference any prior conversation — judge only what you see in the GIF and read in the README.
+   > You are evaluating a hero GIF for the repo `<owner/repo>`.
+   >
+   > **Repo ground truth (from §1.3 scan):**
+   > - README excerpt (first 40 lines): `<excerpt>`
+   > - Real inventory count: `<N>` (e.g. "30 tools", "12 commands", "N/A"). Specific names: `<list if applicable>`.
+   > - Stated hero moment (from §1.6 brief): `<one sentence>`
+   >
+   > **Rating protocol — read carefully:**
+   > - **Default every score to 3 / OK.** A 3 means "gets there, nothing more." Only move up with specific visual evidence from the frames; only move down with specific visual evidence of a problem.
+   > - **4 / Strong requires one concrete observation** from the frames that the criterion is clearly delivered (cite it in the note).
+   > - **5 / Excellent requires two concrete observations AND that you cannot name a realistic improvement.** If you can name one, cap at 4.
+   > - Do not grade on effort, intent, or potential. Grade only what is visible in the frames.
+   > - Compare on-screen claims against the repo ground truth. If the hero says *"all"* / *"every"* / shows a grid of N items but the repo has more, **cap Intent delivery at 2 / Weak** and note the undercount. An unverified claim is weaker than a verified one.
+   >
+   > **Rate each of Legibility, Scene clarity, Voice match, Intent delivery (1–5 Poor/Weak/OK/Strong/Excellent)** with a one-sentence justification citing specific frame evidence. Do not reference any prior conversation — judge only what you see in the frames and read in the ground truth above.
+   >
+   > **At the end, for any score ≥ 4, answer: "what specific change would push this to 5?" If you have an answer, lower the score by one.**
 
 3. **Fill Claude's repo-fidelity row** with a one-sentence justification.
-4. **Ask the user** for the 3 User rows — and include the explainer from §6.1 inline in the ask, not just the criterion name. Example prompt to the user:
+4. **Ask the user** for the 3 User rows via the `AskUserQuestion` tool — not a free-text prompt. Use four questions in one call: Hero moment delivery, Visual impact, Ship-worthiness, and a fourth free-text-via-Other for the one-line feedback. Structure each rating question with four labeled options matching the scale (omit 5 to fit the 4-option max; users can pick "Other" to enter 5/Excellent or a custom score). Example shape:
 
-   > Three ratings from you (1–5, Poor/Weak/OK/Strong/Excellent):
-   > - **Hero moment delivery** — after one loop, would a cold viewer get *what* this repo is *and why* they'd reach for it?
-   > - **Visual impact** — does it make you want to try the repo?
-   > - **Ship-worthiness** — would you paste this into the README today, as-is?
-   > Plus one line of free-text feedback — the single most useful signal for next time.
+   ```
+   AskUserQuestion({
+     questions: [
+       {
+         header: "Hero moment",
+         question: "Hero moment delivery — after one loop, would a cold viewer get *what* this repo is *and why* they'd reach for it?",
+         options: [
+           { label: "2 / Weak", description: "Noticeably misses" },
+           { label: "3 / OK", description: "Gets there, nothing more" },
+           { label: "4 / Strong", description: "Clearly delivers" },
+           { label: "1 / Poor", description: "Falls apart" }
+         ],
+         multiSelect: false
+       },
+       { header: "Visual impact", question: "Visual impact — does it make you want to try the repo?", options: [/* same 4 */], multiSelect: false },
+       { header: "Ship-worthiness", question: "Ship-worthiness — would you paste this into the README today, as-is?", options: [/* same 4 */], multiSelect: false },
+       {
+         header: "Feedback",
+         question: "One line of free-text feedback — the single most useful signal for next time.",
+         options: [
+           { label: "Nothing to add", description: "Skip this round" },
+           { label: "Add a comment", description: "Pick 'Other' to type your line" }
+         ],
+         multiSelect: false
+       }
+     ]
+   })
+   ```
+
+   The "Other" escape hatch covers 5 / Excellent and any other custom response. Capture the returned labels + any `annotations.notes` or "Other" text into the scorecard.
 
 Display the completed table, grouped by rater, then compute an overall simple average. Keep the full table in the run file.
 

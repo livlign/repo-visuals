@@ -105,17 +105,18 @@ if (probe.err || probe.code !== 0 || duration == null) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-visuals-eval-'));
   const first = path.join(tmp, 'first.png');
   const last = path.join(tmp, 'last.png');
-  const r1 = run(FFMPEG, ['-y', '-loglevel', 'error', '-i', file, '-vf', 'select=eq(n\\,0)', '-vframes', '1', first]);
-  const r2 = run(FFMPEG, ['-y', '-loglevel', 'error', '-sseof', '-0.1', '-i', file, '-update', '1', '-vframes', '1', last]);
+  const r1 = run(FFMPEG, ['-y', '-loglevel', 'error', '-i', file, '-vf', 'select=eq(n\\,0)', '-update', '1', '-frames:v', '1', first]);
+  const r2 = run(FFMPEG, ['-y', '-loglevel', 'error', '-sseof', '-0.1', '-i', file, '-update', '1', '-frames:v', '1', last]);
   if (r1.code !== 0 || r2.code !== 0 || !fs.existsSync(first) || !fs.existsSync(last)) {
     seamRow = row(3, 'Could not extract first/last frame; manual seam check advised.');
   } else {
     const diff = run(FFMPEG, [
       '-i', first, '-i', last,
-      '-lavfi', 'blend=all_mode=difference,signalstats',
+      '-lavfi', 'blend=all_mode=difference,signalstats,metadata=mode=print:file=-',
       '-f', 'null', '-',
     ]);
-    const m = (diff.stderr || '').match(/YAVG:([\d.]+)/);
+    const haystack = (diff.stdout || '') + '\n' + (diff.stderr || '');
+    const m = haystack.match(/lavfi\.signalstats\.YAVG=([\d.]+)/) || haystack.match(/YAVG[:= ]([\d.]+)/);
     if (!m) {
       seamRow = row(3, 'Seam diff unreadable from ffmpeg; manual check advised.');
     } else {

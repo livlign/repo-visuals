@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>devtool — hero v2 (one tab, all tools)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #f8fafc;
+    --ink: #0f172a;
+    --ink-2: #334155;
+    --muted: #64748b;
+    --line: #e2e8f0;
+    --line-2: #cbd5e1;
+    --card: #ffffff;
+    --brand: #2563eb;
+    --brand-soft: #dbeafe;
+    --ok: #16a34a;
+    --emerald: #059669;
+    --violet: #7c3aed;
+    --amber: #d97706;
+    --pink: #db2777;
+    --cyan: #0891b2;
+    --rose: #e11d48;
+    --sidebar: #0b1220;
+    --sidebar-2: #111a2e;
+  }
+
+  html, body { margin: 0; padding: 0; background: #e2e8f0; font-family: 'Inter', system-ui, sans-serif; color: var(--ink); }
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px; }
+
+  .stage {
+    width: 1200px; height: 675px;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(15,23,42,.18);
+    border-radius: 14px;
+  }
+
+  /* ========= Browser chrome (persistent) ========= */
+  .chrome {
+    position: absolute; left: 0; right: 0; top: 0; height: 44px;
+    background: #f1f5f9; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; padding: 0 16px; gap: 14px;
+    z-index: 5;
+  }
+  .dots { display: flex; gap: 6px; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot.r { background: #ef4444; } .dot.y { background: #eab308; } .dot.g { background: #22c55e; }
+  .url {
+    margin-left: 4px; min-width: 420px;
+    background: #fff; border: 1px solid var(--line); border-radius: 8px;
+    padding: 6px 14px; font: 500 12px 'JetBrains Mono', monospace; color: var(--ink-2);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .url .offline {
+    background: var(--emerald); color: #fff;
+    font: 700 9px 'JetBrains Mono', monospace;
+    padding: 2px 6px; border-radius: 3px; letter-spacing: .08em;
+  }
+  .url .path-active {
+    color: var(--ink); font-weight: 600;
+  }
+  .url .path-muted { color: var(--muted); }
+  .chrome .one-tab-pill {
+    margin-left: auto;
+    font: 700 10px 'JetBrains Mono', monospace;
+    letter-spacing: .12em; color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .chrome .one-tab-pill b { color: var(--ink); font-weight: 700; }
+
+  /* ========= App frame (persistent sidebar + main) ========= */
+  .app {
+    position: absolute; left: 0; right: 0; top: 44px; bottom: 56px;
+    display: flex;
+    background: var(--bg);
+  }
+
+  /* ========= Sidebar ========= */
+  .rail {
+    width: 250px; flex: 0 0 250px;
+    background: var(--sidebar);
+    color: #cbd5e1;
+    display: flex; flex-direction: column;
+    padding: 18px 14px;
+    gap: 2px;
+    position: relative;
+  }
+  .rail-brand {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 4px 10px 14px; margin-bottom: 6px;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .rail-brand .name {
+    font: 800 20px 'Inter', sans-serif; color: #fff; letter-spacing: -.02em;
+  }
+  .rail-brand .v {
+    font: 500 10px 'JetBrains Mono', monospace; color: #64748b;
+  }
+  .rail-label {
+    font: 600 10px 'JetBrains Mono', monospace;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: #475569; padding: 10px 10px 6px;
+  }
+  .tool-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: 7px;
+    font: 500 13px 'Inter', sans-serif; color: #cbd5e1;
+    position: relative;
+  }
+  .tool-btn .tb-icon {
+    width: 22px; height: 22px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font: 700 10px 'JetBrains Mono', monospace; color: #fff;
+    flex: 0 0 22px;
+  }
+  .tb-sql    .tb-icon { background: var(--brand); }
+  .tb-json   .tb-icon { background: var(--emerald); }
+  .tb-cron   .tb-icon { background: var(--amber); }
+  .tb-jwt    .tb-icon { background: var(--rose); }
+  .tb-color  .tb-icon { background: var(--violet); }
+  .tb-diag   .tb-icon { background: var(--cyan); }
+  .tb-uuid   .tb-icon { background: var(--pink); }
+  .tb-enc    .tb-icon { background: #475569; }
+
+  .tool-btn .tb-shortcut {
+    margin-left: auto;
+    font: 600 10px 'JetBrains Mono', monospace;
+    color: #475569; opacity: 0;
+  }
+  .tool-btn.active-target .tb-shortcut { opacity: .7; }
+
+  /* Active highlight driven by animation */
+  .tool-btn {
+    background: transparent;
+    transition: none;
+    animation: none;
+  }
+  .tool-btn.tb-json { animation: liteJson 16s linear infinite; }
+  .tool-btn.tb-cron { animation: liteCron 16s linear infinite; }
+  .tool-btn.tb-jwt  { animation: liteJwt 16s linear infinite; }
+  .tool-btn.tb-color{ animation: liteColor 16s linear infinite; }
+  .tool-btn.tb-sql  { animation: liteFlash 16s linear infinite; }
+  .tool-btn.tb-diag { animation: liteFlash 16s linear infinite; }
+  .tool-btn.tb-uuid { animation: liteFlash 16s linear infinite; }
+  .tool-btn.tb-enc  { animation: liteFlash 16s linear infinite; }
+
+  /* Each tool lights during its own window, then all light during finale (87.5–100%) */
+  @keyframes liteJson {
+    0%, 22% { background: rgba(37,99,235,.15); color: #fff; }
+    24%, 86% { background: transparent; color: #cbd5e1; }
+    88%, 100% { background: rgba(37,99,235,.15); color: #fff; }
+  }
+  @keyframes liteCron {
+    0%, 22% { background: transparent; color: #cbd5e1; }
+    25%, 43% { background: rgba(217,119,6,.2); color: #fff; }
+    46%, 86% { background: transparent; color: #cbd5e1; }
+    88%, 100% { background: rgba(217,119,6,.2); color: #fff; }
+  }
+  @keyframes liteJwt {
+    0%, 43% { background: transparent; color: #cbd5e1; }
+    46%, 65% { background: rgba(225,29,72,.2); color: #fff; }
+    68%, 86% { background: transparent; color: #cbd5e1; }
+    88%, 100% { background: rgba(225,29,72,.2); color: #fff; }
+  }
+  @keyframes liteColor {
+    0%, 65% { background: transparent; color: #cbd5e1; }
+    68%, 86% { background: rgba(124,58,237,.22); color: #fff; }
+    88%, 100% { background: rgba(124,58,237,.22); color: #fff; }
+  }
+  @keyframes liteFlash {
+    0%, 86% { background: transparent; color: #cbd5e1; }
+    88%, 100% { background: rgba(148,163,184,.12); color: #fff; }
+  }
+
+  /* ========= Main area ========= */
+  .main {
+    flex: 1; position: relative; overflow: hidden;
+    background: var(--bg);
+  }
+  .pane-title {
+    position: absolute; left: 40px; right: 40px; top: 24px;
+    display: flex; align-items: baseline; gap: 14px;
+  }
+  .pane-title .kick {
+    font: 600 10px 'JetBrains Mono', monospace;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+  }
+  .pane-title h2 {
+    margin: 0; font: 700 22px 'Inter', sans-serif;
+    color: var(--ink); letter-spacing: -.02em;
+  }
+  .pane {
+    position: absolute; left: 40px; right: 40px; top: 64px; bottom: 28px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+    animation: paneFade 16s linear infinite;
+    opacity: 0;
+  }
+  .pane-json  { animation-name: fadeJson; }
+  .pane-cron  { animation-name: fadeCron; }
+  .pane-jwt   { animation-name: fadeJwt; }
+  .pane-color { animation-name: fadeColor; }
+  .pane-all   { animation-name: fadeAll; }
+
+  @keyframes fadeJson {
+    0%, 22% { opacity: 1; }
+    24%, 100% { opacity: 0; }
+  }
+  @keyframes fadeCron {
+    0%, 23% { opacity: 0; }
+    25%, 43% { opacity: 1; }
+    45%, 100% { opacity: 0; }
+  }
+  @keyframes fadeJwt {
+    0%, 44% { opacity: 0; }
+    46%, 65% { opacity: 1; }
+    67%, 100% { opacity: 0; }
+  }
+  @keyframes fadeColor {
+    0%, 66% { opacity: 0; }
+    68%, 85% { opacity: 1; }
+    87%, 100% { opacity: 0; }
+  }
+  @keyframes fadeAll {
+    0%, 86% { opacity: 0; transform: scale(.97); }
+    88%, 100% { opacity: 1; transform: scale(1); }
+  }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 8px;
+    box-shadow: 0 1px 3px rgba(15,23,42,.03);
+    min-height: 0;
+  }
+  .card.out { border-color: var(--brand); background: linear-gradient(180deg, #eff6ff 0%, #fff 60%); }
+  .card .clabel {
+    font: 600 10px 'JetBrains Mono', monospace;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+  }
+  .card .content {
+    font: 500 12px/1.55 'JetBrains Mono', monospace;
+    color: var(--ink); white-space: pre-wrap; word-break: break-all;
+    overflow: hidden;
+  }
+  .pane-title + .pane .card { max-height: 100%; }
+
+  /* ---- JSON ---- */
+  .json-out .k { color: var(--pink); }
+  .json-out .s { color: var(--emerald); }
+  .json-out .n { color: var(--violet); }
+  .json-out .b { color: var(--amber); }
+
+  /* ---- Cron ---- */
+  .cron-in .expr { font-weight: 700; font-size: 20px; color: var(--ink); letter-spacing: .02em; }
+  .cron-out .when { font: 700 18px 'Inter', sans-serif; color: var(--ink); }
+  .cron-out .detail { font: 500 11px 'JetBrains Mono', monospace; color: var(--muted); margin-top: 2px; }
+  .cron-out .ticks { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line); }
+  .cron-out .tick { font: 500 11px 'JetBrains Mono', monospace; color: var(--ink-2); display: flex; justify-content: space-between; padding: 2px 0; }
+
+  /* ---- JWT ---- */
+  .jwt-in .content { font-size: 11px; line-height: 1.55; }
+  .jwt-in .h { color: var(--rose); }
+  .jwt-in .p { color: var(--violet); }
+  .jwt-in .sig { color: var(--muted); }
+  .jwt-out { gap: 10px; }
+  .jwt-section { background: var(--bg); border-radius: 6px; padding: 9px 11px; }
+  .jwt-section .head { font: 700 9px 'JetBrains Mono', monospace; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 4px; }
+  .jwt-section.hdr .head { color: var(--rose); }
+  .jwt-section.payload .head { color: var(--violet); }
+  .jwt-section .kv { font: 500 11px 'JetBrains Mono', monospace; color: var(--ink-2); line-height: 1.55; }
+
+  /* ---- Color ---- */
+  .color-swatch {
+    border-radius: 10px; height: 100%; min-height: 240px;
+    background: linear-gradient(135deg, #7c3aed 0%, #ec4899 60%, #f59e0b 100%);
+    display: flex; align-items: flex-end; padding: 18px;
+    color: #fff; font: 700 22px 'Inter', sans-serif;
+    letter-spacing: -.01em;
+  }
+  .color-codes .row {
+    display: flex; justify-content: space-between;
+    padding: 6px 0; border-bottom: 1px dashed var(--line);
+    font: 500 12px 'JetBrains Mono', monospace; color: var(--ink-2);
+  }
+  .color-codes .row:last-child { border-bottom: none; }
+  .color-codes .row b { color: var(--ink); font-weight: 700; }
+
+  /* ---- All (finale mosaic) ---- */
+  .pane-all { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 12px; }
+  .mini {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 9px; padding: 12px 13px;
+    display: flex; flex-direction: column; gap: 5px;
+    overflow: hidden; min-height: 0;
+    position: relative;
+  }
+  .mini .mhead {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .mini .micon {
+    width: 20px; height: 20px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font: 700 9px 'JetBrains Mono', monospace; color: #fff; flex: 0 0 20px;
+  }
+  .mini .mname { font: 700 12px 'Inter', sans-serif; color: var(--ink); }
+  .mini .mbody {
+    font: 500 10px/1.45 'JetBrains Mono', monospace; color: var(--muted);
+    overflow: hidden;
+  }
+  .mini.msql    .micon { background: var(--brand); }
+  .mini.mjson   .micon { background: var(--emerald); }
+  .mini.mcron   .micon { background: var(--amber); }
+  .mini.mjwt    .micon { background: var(--rose); }
+  .mini.mcolor  .micon { background: var(--violet); }
+  .mini.mdiag   .micon { background: var(--cyan); }
+  .mini.muuid   .micon { background: var(--pink); }
+  .mini.menc    .micon { background: #475569; }
+
+  /* ========= Bottom headline strip ========= */
+  .strip {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 56px;
+    background: #0b1220; color: #fff;
+    display: flex; align-items: center; padding: 0 28px 0 264px; gap: 16px;
+    border-top: 1px solid rgba(255,255,255,.06);
+    z-index: 5;
+  }
+  .strip .kick {
+    font: 600 10px 'JetBrains Mono', monospace;
+    letter-spacing: .14em; text-transform: uppercase; color: #64748b;
+    flex: 0 0 auto;
+  }
+  .strip .line {
+    position: relative; font: 700 18px 'Inter', sans-serif; letter-spacing: -.01em;
+    flex: 1; min-width: 0;
+  }
+  .strip .line span {
+    position: absolute; left: 0; top: 0;
+    opacity: 0;
+  }
+  .strip .line .h-json  { animation: fadeJson 16s linear infinite; }
+  .strip .line .h-cron  { animation: fadeCron 16s linear infinite; }
+  .strip .line .h-jwt   { animation: fadeJwt 16s linear infinite; }
+  .strip .line .h-color { animation: fadeColor 16s linear infinite; }
+  .strip .line .h-all   { animation: fadeAll 16s linear infinite; }
+
+  .strip .tag {
+    margin-left: auto; flex: 0 0 auto;
+    background: var(--emerald); color: #fff;
+    font: 700 10px 'JetBrains Mono', monospace;
+    padding: 5px 9px; border-radius: 5px; letter-spacing: .08em;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+
+  <!-- ========= Persistent browser chrome ========= -->
+  <div class="chrome">
+    <div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+    <div class="url">
+      <span class="offline">LOCAL</span>
+      <span class="path-muted">localhost:5173/</span><span class="path-active">devtool</span>
+    </div>
+    <div class="one-tab-pill"><b>ONE TAB</b> · <b>8 TOOLS</b> · OFFLINE</div>
+  </div>
+
+  <!-- ========= Persistent app (sidebar + main) ========= -->
+  <div class="app">
+
+    <!-- Sidebar -->
+    <aside class="rail">
+      <div class="rail-brand">
+        <div class="name">devtool</div>
+        <div class="v">v1 · local</div>
+      </div>
+      <div class="rail-label">Tools</div>
+      <div class="tool-btn tb-json"><div class="tb-icon">{}</div>JSON<span class="tb-shortcut">⌘2</span></div>
+      <div class="tool-btn tb-cron"><div class="tb-icon">⏱</div>Cron<span class="tb-shortcut">⌘3</span></div>
+      <div class="tool-btn tb-jwt"><div class="tb-icon">JWT</div>JWT<span class="tb-shortcut">⌘4</span></div>
+      <div class="tool-btn tb-color"><div class="tb-icon">◐</div>Color<span class="tb-shortcut">⌘5</span></div>
+      <div class="tool-btn tb-sql"><div class="tb-icon">SQL</div>SQL Format<span class="tb-shortcut">⌘1</span></div>
+      <div class="tool-btn tb-diag"><div class="tb-icon">→</div>Diagram<span class="tb-shortcut">⌘6</span></div>
+      <div class="tool-btn tb-uuid"><div class="tb-icon">U</div>UUID / ULID<span class="tb-shortcut">⌘7</span></div>
+      <div class="tool-btn tb-enc"><div class="tb-icon">b64</div>Encoders<span class="tb-shortcut">⌘8</span></div>
+    </aside>
+
+    <!-- Main content area -->
+    <section class="main">
+
+      <!-- JSON (0-22%) -->
+      <div class="pane-title" style="animation: fadeJson 16s linear infinite; opacity: 0">
+        <span class="kick">JSON · /devtool#json</span>
+        <h2>Format, tree, types.</h2>
+      </div>
+      <div class="pane pane-json">
+        <div class="card">
+          <span class="clabel">Input · one line</span>
+          <div class="content">{"user":{"id":481,"name":"Ana Cruz","roles":["admin","billing"],"active":true,"lastSeen":"2026-04-18T09:14:00Z"}}</div>
+        </div>
+        <div class="card out json-out">
+          <span class="clabel">Output · tree</span>
+<div class="content">{
+  <span class="k">"user"</span>: {
+    <span class="k">"id"</span>: <span class="n">481</span>,
+    <span class="k">"name"</span>: <span class="s">"Ana Cruz"</span>,
+    <span class="k">"roles"</span>: [<span class="s">"admin"</span>, <span class="s">"billing"</span>],
+    <span class="k">"active"</span>: <span class="b">true</span>,
+    <span class="k">"lastSeen"</span>: <span class="s">"2026-04-18T09:14:00Z"</span>
+  }
+}</div>
+        </div>
+      </div>
+
+      <!-- Cron (25-43%) -->
+      <div class="pane-title" style="animation: fadeCron 16s linear infinite; opacity: 0">
+        <span class="kick">CRON · /devtool#cron</span>
+        <h2>Read cron like English. See the next runs.</h2>
+      </div>
+      <div class="pane pane-cron">
+        <div class="card cron-in">
+          <span class="clabel">Expression</span>
+          <div class="content expr">0 */6 * * 1-5</div>
+        </div>
+        <div class="card out cron-out">
+          <span class="clabel">Plain · upcoming</span>
+          <div class="when">Every 6 hours</div>
+          <div class="detail">on the hour · Monday – Friday</div>
+          <div class="ticks">
+            <div class="tick"><span>Next</span><span>Apr 21, 12:00</span></div>
+            <div class="tick"><span>+1</span><span>Apr 21, 18:00</span></div>
+            <div class="tick"><span>+2</span><span>Apr 22, 00:00</span></div>
+            <div class="tick"><span>+3</span><span>Apr 22, 06:00</span></div>
+            <div class="tick"><span>+4</span><span>Apr 22, 12:00</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- JWT (46-65%) -->
+      <div class="pane-title" style="animation: fadeJwt 16s linear infinite; opacity: 0">
+        <span class="kick">JWT · /devtool#jwt</span>
+        <h2>Decode tokens. Without pasting secrets into strangers.</h2>
+      </div>
+      <div class="pane pane-jwt">
+        <div class="card jwt-in">
+          <span class="clabel">Token</span>
+          <div class="content"><span class="h">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span>.<span class="p">eyJzdWIiOiJ1XzQ4MSIsIm5hbWUiOiJBbmEgQ3J1eiIsInJvbGUiOiJhZG1pbiIsImV4cCI6MTc1NzY5MjQwMH0</span>.<span class="sig">mVqL3Lk0x7FQp9rS8u2Gv_dN4cT</span></div>
+        </div>
+        <div class="card out jwt-out">
+          <div class="jwt-section hdr">
+            <div class="head">Header</div>
+            <div class="kv">alg: HS256 · typ: JWT</div>
+          </div>
+          <div class="jwt-section payload">
+            <div class="head">Payload</div>
+            <div class="kv">sub: u_481 · name: Ana Cruz</div>
+            <div class="kv">role: admin · exp: 2025-09-12</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Color (68-85%) -->
+      <div class="pane-title" style="animation: fadeColor 16s linear infinite; opacity: 0">
+        <span class="kick">COLOR · /devtool#color</span>
+        <h2>Pick once. Copy in any notation.</h2>
+      </div>
+      <div class="pane pane-color">
+        <div class="card" style="padding: 0; background: transparent; border: none; box-shadow: none">
+          <div class="color-swatch">#7C3AED → #F59E0B</div>
+        </div>
+        <div class="card out color-codes">
+          <span class="clabel">All notations</span>
+          <div class="row"><span>HEX</span><b>#7C3AED</b></div>
+          <div class="row"><span>RGB</span><b>rgb(124, 58, 237)</b></div>
+          <div class="row"><span>HSL</span><b>hsl(262, 83%, 58%)</b></div>
+          <div class="row"><span>OKLCH</span><b>oklch(54.6% 0.25 289)</b></div>
+          <div class="row"><span>CSS var</span><b>--violet-600</b></div>
+          <div class="row"><span>Tailwind</span><b>violet-600</b></div>
+        </div>
+      </div>
+
+      <!-- All (88-100%) — finale mosaic -->
+      <div class="pane-title" style="animation: fadeAll 16s linear infinite; opacity: 0">
+        <span class="kick">ALL OF IT · /devtool</span>
+        <h2>One tab. All the small tools.</h2>
+      </div>
+      <div class="pane pane-all">
+        <div class="mini msql"><div class="mhead"><div class="micon">SQL</div><div class="mname">SQL Format</div></div><div class="mbody">SELECT id, name FROM users<br>WHERE active = true</div></div>
+        <div class="mini mjson"><div class="mhead"><div class="micon">{}</div><div class="mname">JSON</div></div><div class="mbody">tree · diff · minify</div></div>
+        <div class="mini mcron"><div class="mhead"><div class="micon">⏱</div><div class="mname">Cron</div></div><div class="mbody">0 */6 * * 1-5<br>Every 6h · Mon–Fri</div></div>
+        <div class="mini mjwt"><div class="mhead"><div class="micon">JWT</div><div class="mname">JWT</div></div><div class="mbody">HS256 · sub: u_481<br>role: admin</div></div>
+        <div class="mini mcolor"><div class="mhead"><div class="micon">◐</div><div class="mname">Color</div></div><div class="mbody">hex · rgb · hsl · oklch</div></div>
+        <div class="mini mdiag"><div class="mhead"><div class="micon">→</div><div class="mname">Diagram</div></div><div class="mbody">mermaid + graphviz<br>offline render</div></div>
+        <div class="mini muuid"><div class="mhead"><div class="micon">U</div><div class="mname">UUID / ULID</div></div><div class="mbody">v4 · v7 · ULID · batch</div></div>
+        <div class="mini menc"><div class="mhead"><div class="micon">b64</div><div class="mname">Encoders</div></div><div class="mbody">base64 · url · hex · hashes</div></div>
+      </div>
+
+    </section>
+  </div>
+
+  <!-- ========= Bottom headline strip (persistent) ========= -->
+  <div class="strip">
+    <span class="kick">devtool</span>
+    <div class="line">
+      <span class="h-json">Paste. Format. Move on. Your data never leaves the tab.</span>
+      <span class="h-cron">Read cron like English — in the same tab.</span>
+      <span class="h-jwt">Decode tokens — in the same tab.</span>
+      <span class="h-color">Pick colors, copy any notation — in the same tab.</span>
+      <span class="h-all">Eight small tools. One tab. Nothing phones home.</span>
+    </div>
+    <span class="tag">100% LOCAL</span>
+  </div>
+
+</div>
+
+<script>
+  // Reset for capture.js
+  window.runLoop = function() {
+    const stage = document.getElementById('stage');
+    const anims = stage.getAnimations ? stage.getAnimations({ subtree: true }) : [];
+    anims.forEach(a => { try { a.cancel(); a.play(); } catch(e) {} });
+  };
+
+  // Optional static-screenshot seek hook
+  window.seekTo = function(seconds) {
+    const total = 16;
+    const frac = Math.max(0, Math.min(1, seconds / total));
+    const stage = document.getElementById('stage');
+    const anims = stage.getAnimations ? stage.getAnimations({ subtree: true }) : [];
+    anims.forEach(a => {
+      try {
+        const dur = a.effect.getTiming().duration;
+        a.currentTime = dur * frac;
+        a.pause();
+      } catch(e) {}
+    });
+  };
+</script>
+
+</body>
+</html>
