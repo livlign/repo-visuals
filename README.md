@@ -9,7 +9,8 @@ The skill scans the target repo, recommends a format (animated vs static) based 
 Install as a user-level Claude Code skill (available in every project):
 
 ```bash
-git clone https://github.com/livlign/repo-visuals.git ~/.claude/skills/repo-visuals \
+mkdir -p ~/.claude/skills \
+  && git clone https://github.com/livlign/repo-visuals.git ~/.claude/skills/repo-visuals \
   && cd ~/.claude/skills/repo-visuals \
   && npm install
 ```
@@ -17,7 +18,7 @@ git clone https://github.com/livlign/repo-visuals.git ~/.claude/skills/repo-visu
 Or, if you've already cloned the repo somewhere else, symlink it:
 
 ```bash
-ln -s "$(pwd)" ~/.claude/skills/repo-visuals && npm install
+mkdir -p ~/.claude/skills && ln -s "$(pwd)" ~/.claude/skills/repo-visuals && npm install
 ```
 
 Then install the system dependency:
