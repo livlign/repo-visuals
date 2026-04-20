@@ -1,11 +1,25 @@
+// Animated capture via Puppeteer Page.startScreencast.
+// Usage: node scripts/capture.js --html <path> --out <frames-dir> --manifest <frames.txt> --duration <ms> --width 1200 --height 675
+// Writes numbered PNGs to <frames-dir> and an ffmpeg concat manifest to <frames.txt>.
+
 const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs');
 
-const HTML = path.resolve(__dirname, 'gif-v1.html');
-const OUT = path.resolve(__dirname, 'frames');
-const MANIFEST = path.resolve(__dirname, 'frames.txt');
-const DURATION_MS = 20700;
+const args = process.argv.slice(2);
+function flag(name, def) {
+  const i = args.indexOf(`--${name}`);
+  if (i < 0) return def;
+  const v = args[i + 1];
+  return v === undefined ? def : v;
+}
+
+const HTML = path.resolve(flag('html', path.resolve(__dirname, 'gif-v1.html')));
+const OUT = path.resolve(flag('out', path.resolve(__dirname, 'frames')));
+const MANIFEST = path.resolve(flag('manifest', path.resolve(__dirname, 'frames.txt')));
+const DURATION_MS = Number(flag('duration', 20700));
+const WIDTH = Number(flag('width', 1200));
+const HEIGHT = Number(flag('height', 675));
 
 (async () => {
   if (fs.existsSync(OUT)) fs.rmSync(OUT, { recursive: true });
@@ -16,7 +30,7 @@ const DURATION_MS = 20700;
     args: ['--no-sandbox', '--hide-scrollbars']
   });
   const page = await browser.newPage();
-  await page.setViewport({ width: 1200, height: 675, deviceScaleFactor: 1 });
+  await page.setViewport({ width: WIDTH, height: HEIGHT, deviceScaleFactor: 1 });
 
   await page.goto('file:///' + HTML.replace(/\\/g, '/'), { waitUntil: 'networkidle0' });
   await page.evaluateHandle('document.fonts.ready');

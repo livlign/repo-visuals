@@ -1,21 +1,21 @@
 ---
 name: repo-visuals
-description: Create animated hero GIFs (and later: static hero images, social cards) for GitHub repositories. Runs a structured discovery conversation (scan repo → propose creative scenarios → agree on a brief), then designs a bespoke HTML animation, previews it in the browser, and exports it as an optimized GIF. v1 ships hero GIF only.
+description: Create hero visuals — animated GIF or static PNG — for GitHub repositories. Runs a structured discovery conversation (scan repo → recommend format → propose creative scenarios → agree on a brief), then designs bespoke HTML, previews it in the browser, and exports.
 ---
 
 # repo-visuals
 
-Turn a repo (GitHub URL, local folder, or free-text brief) into a hero GIF that a viewer sees at the top of the README and instantly understands *what this project does and why it's interesting*.
+Turn a repo (GitHub URL, local folder, or free-text brief) into a hero visual that a viewer sees at the top of the README and instantly understands *what this project does and why it's interesting*. The hero may be an **animated GIF** or a **static PNG** — the skill recommends one based on the repo's identity, the user picks.
 
 The skill's quality comes from the **discovery dialog**, not from templates. Every hero is bespoke.
 
 ## Phases
 
-1. **Discovery** — scan the repo, summarize findings, ask the user about vibe/audience/hero moment, propose 2–3 scenarios, converge on a brief.
-2. **Build** — write HTML/CSS/JS for the chosen scenario. No storyboard step.
+1. **Discovery** — pick operating mode (Auto / Semi-auto / Manual, §1.1a), scan the repo, summarize findings, recommend a format (animated vs static), ask about vibe/audience/hero moment, propose 2–3 scenarios, converge on a brief. The mode controls *how many* of these the user answers vs. Claude decides silently — it does not skip any of the craft checks.
+2. **Build** — write HTML/CSS/JS for the chosen scenario. For static, design one decisive frame; for animated, a loop. No storyboard step.
 3. **Preview & iterate** — open the HTML in the user's default browser, iterate in text until the user says ship.
-4. **Export** — convert HTML to optimized GIF via Puppeteer screencast + ffmpeg palette pipeline.
-5. **Output** — place the GIF in the target repo; optionally open a PR that embeds it in the README.
+4. **Export** — animated → Puppeteer screencast + ffmpeg palette pipeline to GIF. Static → Puppeteer `page.screenshot` to PNG (with `deviceScaleFactor: 2` for retina crispness).
+5. **Output** — place the hero in the target repo; optionally open a PR that embeds it in the README.
 
 ---
 
@@ -26,6 +26,47 @@ Discovery runs **before any HTML is written**. Its job: go from a vague ask ("ma
 ### 1.1 Activation
 
 Enter discovery mode whenever the user invokes the skill, **unless** they explicitly say "skip discovery, I have the brief ready."
+
+### 1.1a Operating mode (ask first, once per run)
+
+Before anything else — before the scan summary, before any direction questions — ask the user which operating mode they want for this run. Use the `AskUserQuestion` tool so the choice is structured and visible, not buried in free text. Offer three modes; describe each in concrete terms (what gets asked, what gets decided silently) and include pros/cons so the user can pick with open eyes. Default recommendation: **Semi-auto**.
+
+> Note: this "operating mode" is a skill-level concept about how many questions the skill asks. It is distinct from the Claude Code harness's own auto-mode; the two do not replace each other.
+
+Question shape:
+
+```
+AskUserQuestion({
+  questions: [{
+    header: "Run mode",
+    question: "How involved do you want to be in this run? This affects how many decisions I ask you to make before we ship an artifact.",
+    multiSelect: false,
+    options: [
+      {
+        label: "Semi-auto (Recommended)",
+        description: "I decide vibe, audience, scenario, dimensions, copy. You decide: output format (GIF/PNG/HTML), one preview-and-iterate review before export, and the final User scorecard. ~3 decisions. Pros: fast, keeps production-grade gate, keeps your taste in the loop on the things that matter most. Cons: you miss input on smaller creative calls."
+      },
+      {
+        label: "Manual",
+        description: "I ask you at every decision point — scenario pick, vibe confirmation, brief approval, preview iteration rounds, export ship-intent, full Phase 6 scorecard. I still make suggestions and recommendations at each step. Pros: max control, highest ceiling on quality. Cons: slow — 8–12 back-and-forths before an artifact."
+      },
+      {
+        label: "Auto",
+        description: "I make every decision and go straight to the exported artifact (GIF or PNG, my call). I still run Code + AI eval and deliver a scorecard, but skip User scorecard questions and skip the mid-run preview gate. Pros: hands-off, 0 decisions, fastest path to a shippable draft. Cons: lower quality ceiling, more risk of missing your taste or the repo's real scope; expect to redirect after seeing the result."
+      }
+    ]
+  }]
+})
+```
+
+Rules that apply to **every** mode regardless of choice (craft non-negotiables):
+
+- **§1.3 inventory count is always collected.** Auto/semi don't skip it.
+- **§4.0 scope-match rule is always enforced.** If the hero says "all" or shows a grid, on-screen reality must match the real inventory — regardless of mode.
+- **Phase 6 Code + AI eval always runs.** Only User ratings are skipped in Auto mode.
+- **Any mode can be upgraded mid-run.** If Auto drifts, user can say "stop, switch to semi" and we resume from the nearest decision point. Do not silently re-ask everything; pick up at the next unanswered question.
+
+After the user picks a mode, commit it to memory for the run (e.g. "Mode: Semi-auto") and reference it when deciding whether to ask or decide silently at each subsequent step. In Auto and Semi-auto, make decisions with a brief one-line note ("going with the Product-UI marketing archetype per §1.4c — amplication-shape repo") so the user can redirect if they disagree.
 
 ### 1.2 Input triage
 
@@ -49,15 +90,16 @@ Gather as much as possible before asking the user anything. Goal: Claude should 
 - Recent git log (last 10 commits) — what's active.
 - If GitHub: stars, topics, releases, open issues count.
 - If `ast-graph` is available locally and the repo has supported languages: run `scan` + `hotspots` + `symbol` on top-level exports for structural inventory.
+- **Count the real inventory** — if the repo exposes a collection (tools, commands, pages, themes, plugins, routes), count them from source (route files, `src/tools/*`, CLI command registrations, etc.). Do not estimate from the README. This number is used later: any hero that says "all", "every", "the whole", or shows a grid meant to represent scope must match this count — or explicitly frame itself as a sample ("10 of 30 shown", scroll affordance, "30+"). An undercount reads as a broken promise.
 
-Summarize findings back to the user in ~6–10 bullets so they can correct misreadings early.
+Summarize findings back to the user in ~6–10 bullets so they can correct misreadings early. Include the inventory count when one exists.
 
 ### 1.4 Direction questions (after the scan summary)
 
 Ask these as a structured batch, with suggested defaults based on what the scan found so the user can just accept or redirect:
 
 1. **Where will this hero live?** — README top / project website / social posts (Twitter, LinkedIn) / conference slide / internal demo / elsewhere. *This drives dimensions and loop length.*
-2. **Do you want a GIF output?** — yes / no. If **no**, the skill still produces the HTML animation and the user takes it from there (e.g. screenshots, drops into a site). Default: yes. *(MP4/WebM, static PNG, and square social cards are planned for v2+ — see appendix.)*
+2. **Output format?** — **animated GIF** / **static image (PNG)** / **HTML only (no export)**. Not every repo wants motion; some strong identities read better as one sharp frame. Scan the repo first and offer a recommendation (see §1.4c), then let the user override. Default: whichever §1.4c recommends. *(MP4/WebM and square social cards are listed in the future-formats appendix.)*
 3. **Audience** — working devs / eng leaders / newcomers / prospective contributors / all
 4. **Vibe** — minimal, playful, technical, cinematic, retro-terminal, brutalist, polished-SaaS
 5. **Energy** — calm & meditative / steady / frenetic & showy
@@ -74,6 +116,31 @@ Many users will answer "I don't know" to vibe / hero moment / audience. That's n
 - **"Is this repo a calm/serious tool or a fun/exciting one?"** — a binary that usually works for vibe.
 
 If they still can't articulate, offer Claude's best guess based on the scan and ask them to confirm or push back. Be willing to **commit first, confirm second** — a concrete wrong guess triggers better reactions than another open-ended question.
+
+### 1.4c Format recommendation (animated vs static)
+
+Before asking Q2, form an opinion from the scan. **First consult `craft/reference-gallery.md`** — try to place the target repo in one of the catalogued archetypes (Terminal-demo GIF / Product-UI marketing / Brand-first logo / Banner/promo graphic / Diagram-as-hero) and cite the match by name when recommending. If no clean match, fall back to the heuristics below.
+
+The repo's identity tells you which format fits:
+
+**Lean static (PNG) when:**
+- The repo's pitch is a **surface**, not a process — a landing page, a typography choice, an API shape, a single striking screenshot.
+- Existing visuals in `assets/` / `docs/` are already static and strong.
+- The vibe is brutalist, editorial, documentation-first, or "the screenshot is the product" (design systems, component libs shown in a grid, CLI themes whose appeal is one frame).
+- Audience skews toward skim-then-click (social posts shared as preview cards, directory listings).
+- README opens with one crisp hero sentence and a screenshot — mirror that, don't animate it.
+
+**Lean animated (GIF) when:**
+- There's a **before→after transformation**, a step sequence, or a multi-stage pipeline — the motion *is* the pitch.
+- The repo is a tool with visible runtime behavior (CLI output, live reload, computation unfolding).
+- The hero moment is "watch this happen," not "see this exists."
+- The scan surfaces multiple distinct capabilities worth walking through (then: animated; or: static grid).
+
+**Lean HTML-only when:**
+- The user will embed on a site they control and wants the live animation.
+- The user explicitly wants to iterate further with their own tools.
+
+Present the recommendation forcefully: *"Based on the scan, I'd go **static** — this repo's identity is [X], and motion would add noise not signal. Want me to proceed with static, or would you rather animated?"* Then honor whatever they pick.
 
 ### 1.5 Scenario proposal
 
@@ -96,12 +163,14 @@ Move to the build phase when all six are settled:
 - [ ] Hero moment named in one sentence
 - [ ] Audience named
 - [ ] Hard constraints captured (or confirmed "none")
-- [ ] GIF wanted? (yes/no)
+- [ ] Output format chosen (animated GIF / static PNG / HTML only)
 - [ ] Placement agreed (README / website / social / slide / other)
-- [ ] Duration chosen (typical: 15–25s loop; default 20s)
+- [ ] Duration chosen — animated only (typical: 15–25s loop; default 20s); skip for static
 - [ ] Dimensions chosen (see §1.7 — NOT a fixed default; pick per repo and placement)
+- [ ] Real inventory count captured from §1.3 scan (if the repo has a countable collection)
+- [ ] Operating mode recorded from §1.1a (Auto / Semi-auto / Manual)
 
-Write the brief back to the user in a compact block. Wait for **"go"** before writing any HTML.
+Write the brief back to the user in a compact block. Wait for **"go"** before writing any HTML — *unless* the mode is **Auto**, in which case proceed directly to Phase 2 with a brief summary line and no wait. In **Semi-auto**, show the brief but proceed after a brief pause unless the user interjects. In **Manual**, wait explicitly for "go".
 
 ### 1.7 Dimension selection
 
@@ -242,6 +311,21 @@ When you spot a mismatch, flag it proactively ("the README leans 'fast' but the 
 
 ## Phase 4 — Export
 
+### 4.0 Entry gate — do not skip
+
+Before you export anything, confirm — the exact gate depends on operating mode (§1.1a):
+
+| Gate item | Manual | Semi-auto | Auto |
+|---|---|---|---|
+| User has **seen the artifact running** (open in browser or rendered screenshot) | required | required | skipped |
+| At least **one iteration round** after first look | required | required | skipped |
+| **Scope match** — hero claims (*"all"*, *"every"*, grid/list representing the repo) match real inventory from §1.3, or explicitly framed as sample ("10 of 30", "30+", scroll affordance) | **required** | **required** | **required** |
+| User has explicitly said ship / go / export | required | required (after 1 preview) | not required |
+
+The scope-match rule is **non-negotiable in every mode** — it's a craft check, not a human-involvement question. The human-in-the-loop items are what modes toggle.
+
+Export is the **last** step, not a midpoint. A capture→encode→evaluate cycle feels productive but burns the user's patience on a draft that wasn't ready. When in doubt between "export this pass" and "one more iteration", prefer the iteration — except in Auto mode, where the point is to deliver a first draft fast and let the user redirect.
+
 ### 4.1 Prerequisites (ask before installing)
 
 Check presence, list missing, ask the user before installing:
@@ -261,7 +345,15 @@ Ship at `<skill-dir>/scripts/capture.js`. Accepts CLI args:
 node capture.js --html <path-to-index.html> --out <frames-dir> --duration 20700 --width 1200 --height 675
 ```
 
-### 4.3 GIF pipeline (the proven recipe)
+### 4.3 Branch on chosen format
+
+Based on the format decided in Phase 1.4c:
+
+- **Animated GIF** → continue with §4.3 (GIF pipeline).
+- **Static PNG** → skip to §4.3s (static pipeline).
+- **HTML only** → skip Phase 4 entirely; the hand-off is `repo-visuals-work/index.html`.
+
+### 4.3g GIF pipeline (the proven recipe)
 
 Use as-is unless there's a specific reason to deviate.
 
@@ -305,19 +397,47 @@ ffmpeg -y -f concat -safe 0 -i frames.txt -i palette.png \
 - **Hard max: 15 MB** — only if the content genuinely requires it *and* the user has confirmed they accept the bigger file. Never exceed silently.
 - Reduction ladder when over 10 MB: drop to `fps=20` → drop to `fps=15` → `max_colors=192` → `max_colors=128` → shorten loop. Apply in order; stop as soon as under budget.
 
+### 4.3s Static PNG pipeline
+
+For the static format, skip ffmpeg entirely — a single crisp screenshot is enough.
+
+**Capture via Puppeteer:**
+
+- Launch Puppeteer (`headless: 'new'`).
+- `setViewport({ width, height, deviceScaleFactor: 2 })` — retina-crisp for README rendering at native size.
+- `page.goto(file://...)` with `waitUntil: 'networkidle0'`.
+- `await page.evaluateHandle('document.fonts.ready')`.
+- Settle 500ms so any entrance transition finishes.
+- `await page.screenshot({ path: 'hero.png', type: 'png', omitBackground: false })`.
+
+If the HTML has an animation that evolves over time, either:
+- Design the static HTML to render its final/decisive frame at t=0 (preferred), or
+- Before the screenshot: `await page.evaluate(() => window.seekTo(<seconds>))` if the source HTML exposes such a hook.
+
+**Optional compression:** run `pngquant --quality=80-95 hero.png --output hero.png --force` if the PNG is over ~500 KB. Static heroes rarely need it.
+
+**Size budget:**
+
+- Target: ≤ 500 KB for a 1200-wide retina PNG. If over 1 MB, compress.
+
+**Ship script:** `node scripts/screenshot.js --html <path> --out hero.png --width 1200 --height 675` (thin wrapper around the steps above — see `scripts/screenshot.js`).
+
 ### 4.4 Output file name
 
-`repo-visuals-work/hero.gif` — keep in the scratch dir until Phase 5 (Output) moves it.
+- Animated → `repo-visuals-work/hero.gif`
+- Static   → `repo-visuals-work/hero.png`
+
+Keep in the scratch dir until Phase 5 (Output) moves it.
 
 ---
 
-### Appendix — planned v2 formats (not in v1)
+### Appendix — future formats
 
-When multi-format support is added, these become Phase 4.5+:
+Future formats Claude may extend this skill with — not part of the current export pipeline:
 
 - **MP4 / WebM loop** — `libx264 -crf 18` or `libvpx-vp9 -crf 32`. Higher fidelity, smaller files. Note: GitHub renders `.mp4` uploaded via issue/PR drag-and-drop but not `.mp4` checked into the repo and linked in markdown.
-- **Static PNG** — single-frame Puppeteer screenshot at the chosen "hero moment". Offer a 9-frame contact sheet so the user picks the moment.
-- **Square social card (800×800 or 1200×1200)** — variant of static PNG, often reframed rather than cropped.
+- **Square social card (800×800 or 1200×1200)** — variant of static PNG, often reframed rather than cropped, with headline overlay tuned for LinkedIn / Twitter preview rendering.
+- **9-frame contact sheet** — helper for picking the decisive moment of a long animation before static export.
 
 ---
 
@@ -385,15 +505,42 @@ If the user doesn't want a PR, leave `hero.gif` at `repo-visuals-work/hero.gif` 
 
 Score the **final artifact**, not the process. Always runs at the end of every work.
 
-### 6.1 Criteria (5 dimensions)
+### 6.1 Criteria (four rater types)
 
-| # | Criterion | Who rates | Signal for low score |
+Each criterion is rated by exactly one of: **User**, **Claude** (subjective, chat-blind), **Code** (deterministic script), or **AI** (Claude re-reads the final GIF/HTML with vision, blind to prior chat).
+
+**User-rated (3) — viewer-side truth.**
+
+| Criterion | What it measures | Signal for low score |
+|---|---|---|
+| **Hero moment delivery** | Does a cold viewer "get it" in ~10 seconds — both *what the repo is* and *why they'd reach for it*? | After one loop, viewer still can't state the repo's purpose or motivation |
+| **Visual impact** | Does the artifact make the viewer *want* to try the repo? | Looks fine but feels generic; no pull |
+| **Ship-worthiness** | Gut check: would the user paste this into the repo's README today, as-is? | User hesitates, wants "one more pass" |
+
+**Claude-rated (1) — repo-fit judgment.**
+
+| Criterion | What it measures | Signal for low score |
+|---|---|---|
+| **Repo fidelity** | Do on-screen text, terminology, and vibe feel like this specific repo's own voice? | Headlines read like generic marketing; terminology drifts from README |
+
+**Code-evaluated — `scripts/evaluate.js` runs automatically after export. Rows depend on format.**
+
+| Criterion | Applies to | Pass rule | Fail signal |
 |---|---|---|---|
-| 1 | **Hero moment delivery** | User | Viewer wouldn't "get it" in 10 seconds |
-| 2 | **Repo fidelity** | Claude | On-screen text, terminology, vibe don't feel like the repo's own voice |
-| 3 | **Technical polish** | Claude | Blurry text, palette banding, loop seam jank, over-budget file |
-| 4 | **Visual impact** | User | Doesn't make a viewer want to try the repo |
-| 5 | **Ship-worthiness** | User | Gut-check: would you put this on the repo today? |
+| **File size** | GIF + PNG | GIF: ≤ 10 MB target / ≤ 15 MB cap. PNG: ≤ 500 KB target / ≤ 1 MB cap. | Over target → 3; over cap → 1 |
+| **Dimensions** | GIF + PNG | Matches spec (e.g. 1200×675). PNG at 2× device pixel scale is also acceptable. | Wrong size → 1 |
+| **Loop duration** | GIF only | 15–25 s (hero default) | Outside band → 2 |
+| **Loop seam** | GIF only | First-frame vs last-frame pixel diff under ~2% | Visible jump on loop → 2 |
+| **Palette size** | GIF only | Palette ≤ 256, no visible banding on solid regions | Banding detected → 2 |
+
+**AI-evaluated (4) — Claude re-opens the exported artifact with vision, blind to prior chat. Prompt in §6.3.**
+
+| Criterion | What it measures | Signal for low score |
+|---|---|---|
+| **Legibility** | Every headline readable at native render size, no sub-pixel smear | Any headline unreadable → 2 |
+| **Scene clarity** | Each scene conveys one idea in its airtime | Two scenes blur together or one feels like filler → 3 |
+| **Voice match** | Headlines match tone and terminology of the repo's README | Drift from repo's own language → 2 |
+| **Intent delivery** | After one loop, can a cold viewer state *why* to reach for this repo? | Demos *what* without delivering *why* → 3 |
 
 ### 6.2 Scale (1–5, labeled)
 
@@ -409,19 +556,84 @@ Use the labels, not bare numbers. A "3" alone is noise; "3 / OK" is meaningful.
 
 ### 6.3 Hand-off scorecard
 
-Display as a markdown table at the end of the work. Claude fills its own criteria first with one-sentence justifications, then asks the user for their three:
+Assemble in four steps:
+
+1. **Run code eval** — `node scripts/evaluate.js <path-to-hero.gif-or-png>` → emits a JSON scorecard.
+2. **Run AI eval** — extract 4–6 keyframes from the GIF first (`ffmpeg -ss <t> -i hero.gif -update 1 -frames:v 1 frame.png` at evenly spaced times), then re-read each frame with vision, blind to prior chat. Use this fixed prompt — **anchored, evidence-required, and fed the repo's real inventory** so factual drift is catchable:
+
+   > You are evaluating a hero GIF for the repo `<owner/repo>`.
+   >
+   > **Repo ground truth (from §1.3 scan):**
+   > - README excerpt (first 40 lines): `<excerpt>`
+   > - Real inventory count: `<N>` (e.g. "30 tools", "12 commands", "N/A"). Specific names: `<list if applicable>`.
+   > - Stated hero moment (from §1.6 brief): `<one sentence>`
+   >
+   > **Rating protocol — read carefully:**
+   > - **Default every score to 3 / OK.** A 3 means "gets there, nothing more." Only move up with specific visual evidence from the frames; only move down with specific visual evidence of a problem.
+   > - **4 / Strong requires one concrete observation** from the frames that the criterion is clearly delivered (cite it in the note).
+   > - **5 / Excellent requires two concrete observations AND that you cannot name a realistic improvement.** If you can name one, cap at 4.
+   > - Do not grade on effort, intent, or potential. Grade only what is visible in the frames.
+   > - Compare on-screen claims against the repo ground truth. If the hero says *"all"* / *"every"* / shows a grid of N items but the repo has more, **cap Intent delivery at 2 / Weak** and note the undercount. An unverified claim is weaker than a verified one.
+   >
+   > **Rate each of Legibility, Scene clarity, Voice match, Intent delivery (1–5 Poor/Weak/OK/Strong/Excellent)** with a one-sentence justification citing specific frame evidence. Do not reference any prior conversation — judge only what you see in the frames and read in the ground truth above.
+   >
+   > **At the end, for any score ≥ 4, answer: "what specific change would push this to 5?" If you have an answer, lower the score by one.**
+
+3. **Fill Claude's repo-fidelity row** with a one-sentence justification.
+4. **Ask the user** for the 3 User rows via the `AskUserQuestion` tool — **in Manual and Semi-auto only**. In **Auto** mode, skip the User rows entirely; compute the overall average from Code + AI + Claude rows alone and flag in the run file that User ratings were not collected (so the evaluations index can weight it correctly).
+
+   Use four questions in one call: Hero moment delivery, Visual impact, Ship-worthiness, and a fourth free-text-via-Other for the one-line feedback. Structure each rating question with four labeled options matching the scale (omit 5 to fit the 4-option max; users can pick "Other" to enter 5/Excellent or a custom score). Example shape:
+
+   ```
+   AskUserQuestion({
+     questions: [
+       {
+         header: "Hero moment",
+         question: "Hero moment delivery — after one loop, would a cold viewer get *what* this repo is *and why* they'd reach for it?",
+         options: [
+           { label: "2 / Weak", description: "Noticeably misses" },
+           { label: "3 / OK", description: "Gets there, nothing more" },
+           { label: "4 / Strong", description: "Clearly delivers" },
+           { label: "1 / Poor", description: "Falls apart" }
+         ],
+         multiSelect: false
+       },
+       { header: "Visual impact", question: "Visual impact — does it make you want to try the repo?", options: [/* same 4 */], multiSelect: false },
+       { header: "Ship-worthiness", question: "Ship-worthiness — would you paste this into the README today, as-is?", options: [/* same 4 */], multiSelect: false },
+       {
+         header: "Feedback",
+         question: "One line of free-text feedback — the single most useful signal for next time.",
+         options: [
+           { label: "Nothing to add", description: "Skip this round" },
+           { label: "Add a comment", description: "Pick 'Other' to type your line" }
+         ],
+         multiSelect: false
+       }
+     ]
+   })
+   ```
+
+   The "Other" escape hatch covers 5 / Excellent and any other custom response. Capture the returned labels + any `annotations.notes` or "Other" text into the scorecard.
+
+Display the completed table, grouped by rater, then compute an overall simple average. Keep the full table in the run file.
 
 ```
-| Criterion            | Score       | Note                                                    |
-|----------------------|-------------|---------------------------------------------------------|
-| Hero moment delivery | (ask user)  | (ask user)                                              |
-| Repo fidelity        | 4 / Strong  | Mirrors README phrasing; tagline could be tighter.      |
-| Technical polish     | 4 / Strong  | Sharp text, clean loop, 8.2 MB (under 10 MB cap).       |
-| Visual impact        | (ask user)  | (ask user)                                              |
-| Ship-worthiness      | (ask user)  | (ask user)                                              |
+| Criterion            | Rater  | Score        | Note                                                   |
+|----------------------|--------|--------------|--------------------------------------------------------|
+| Hero moment delivery | User   | (ask user)   | (ask user)                                             |
+| Visual impact        | User   | (ask user)   | (ask user)                                             |
+| Ship-worthiness      | User   | (ask user)   | (ask user)                                             |
+| Repo fidelity        | Claude | 4 / Strong   | Mirrors README phrasing; tagline could be tighter.     |
+| File size            | Code   | 5 / Excellent| 2.4 MB (10 MB target).                                 |
+| Dimensions           | Code   | 5 / Excellent| 1200×675 matches spec.                                 |
+| Loop duration        | Code   | 5 / Excellent| 20.1 s inside 15–25 s band.                            |
+| Loop seam            | Code   | 4 / Strong   | 1.3% first/last-frame diff (threshold 2%).             |
+| Palette size         | Code   | 5 / Excellent| 212 colors, no banding flagged.                        |
+| Legibility           | AI     | 4 / Strong   | All 7 headlines readable at native size.               |
+| Scene clarity        | AI     | 3 / OK       | Cron and JWT scenes blur into each other.              |
+| Voice match          | AI     | 4 / Strong   | Matches README's "one-off utility" framing.            |
+| Intent delivery      | AI     | 3 / OK       | Shows *what* each tool does, not *why* a user needs it.|
 ```
-
-After the user fills in their three, show the completed table and compute an overall average. Also ask for **one line of free-text feedback** — the single most useful input for future improvement.
 
 ### 6.4 Evaluation log (two-tier)
 

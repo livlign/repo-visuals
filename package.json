@@ -1,0 +1,24 @@
+{
+  "name": "repo-visuals",
+  "version": "1.0.0",
+  "description": "A Claude Code skill for producing hero visuals — **animated GIF** or **static PNG** — for GitHub repositories. Later: social cards, MP4 demos.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/livlign/repo-visuals.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/livlign/repo-visuals/issues"
+  },
+  "homepage": "https://github.com/livlign/repo-visuals#readme",
+  "dependencies": {
+    "puppeteer": "^24.42.0"
+  }
+}
