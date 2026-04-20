@@ -6,30 +6,55 @@ The skill scans the target repo, recommends a format (animated vs static) based 
 
 ## Install
 
-Install as a user-level Claude Code skill (available in every project):
+Installed as a **user-level** Claude Code skill at `~/.claude/skills/repo-visuals`, it's available in every project on your machine.
+
+Prerequisites (all platforms): Node.js 18+, git, and ffmpeg (installed below).
+
+### macOS
 
 ```bash
 mkdir -p ~/.claude/skills \
   && git clone https://github.com/livlign/repo-visuals.git ~/.claude/skills/repo-visuals \
   && cd ~/.claude/skills/repo-visuals \
-  && npm install
+  && npm install \
+  && brew install ffmpeg
 ```
 
-Or, if you've already cloned the repo somewhere else, symlink it:
+If you've already cloned the repo elsewhere and want to symlink it instead of a second clone:
 
 ```bash
 mkdir -p ~/.claude/skills && ln -s "$(pwd)" ~/.claude/skills/repo-visuals && npm install
 ```
 
-Then install the system dependency:
+### Linux (Debian / Ubuntu)
 
 ```bash
-brew install ffmpeg       # macOS
-# apt install ffmpeg      # Debian/Ubuntu
-# choco install ffmpeg    # Windows
+mkdir -p ~/.claude/skills \
+  && git clone https://github.com/livlign/repo-visuals.git ~/.claude/skills/repo-visuals \
+  && cd ~/.claude/skills/repo-visuals \
+  && npm install \
+  && sudo apt install -y ffmpeg
 ```
 
-Restart Claude Code (or start a new session) and the skill will be auto-discovered. Invoke it with `/repo-visuals` or by asking Claude to "make a hero visual for this repo."
+Other distros: swap in `dnf install ffmpeg` (Fedora), `pacman -S ffmpeg` (Arch), etc.
+
+### Windows — PowerShell
+
+```powershell
+New-Item -ItemType Directory -Force -Path "$HOME\.claude\skills" | Out-Null
+git clone https://github.com/livlign/repo-visuals.git "$HOME\.claude\skills\repo-visuals"
+cd "$HOME\.claude\skills\repo-visuals"
+npm install
+choco install ffmpeg    # or: winget install Gyan.FFmpeg
+```
+
+### Windows — Git Bash / WSL
+
+Use the **Linux** commands above. WSL runs under its own home directory (`~` inside WSL is not the same as `C:\Users\<you>`) — make sure Claude Code is also running inside WSL so it reads the same `~/.claude/skills/`.
+
+### After installing
+
+Restart Claude Code (or start a new session) — the skill is auto-discovered. Invoke it by asking Claude to "make a hero visual for this repo," or run `/repo-visuals` directly.
 
 ## Getting started
 
