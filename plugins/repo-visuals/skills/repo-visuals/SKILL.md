@@ -167,26 +167,22 @@ Move to the build phase when all six are settled:
 - [ ] Output format chosen (animated GIF / static PNG / HTML only)
 - [ ] Placement agreed (README / website / social / slide / other)
 - [ ] Duration chosen — animated only (typical: 15–25s loop; default 20s); skip for static
-- [ ] Dimensions chosen (see §1.7 — NOT a fixed default; pick per repo and placement)
+- [ ] Dimensions confirmed (see §1.7 — locked to 1200×675; do not vary)
 - [ ] Real inventory count captured from §1.3 scan (if the repo has a countable collection)
 - [ ] Operating mode recorded from §1.1a (Auto / Semi-auto / Manual)
 
 Write the brief back to the user in a compact block. Wait for **"go"** before writing any HTML — *unless* the mode is **Auto**, in which case proceed directly to Phase 2 with a brief summary line and no wait. In **Semi-auto**, show the brief but proceed after a brief pause unless the user interjects. In **Manual**, wait explicitly for "go".
 
-### 1.7 Dimension selection
+### 1.7 Dimensions — locked
 
-Dimensions are **not fixed**. Choose per repo based on what the hero needs to show:
+**Always 1200×675 (16:9).** Do not try to match the target repo's existing image dimensions; do not pick a slim banner because the current logo is slim; do not offer the user a choice. This is a hard default.
 
-| Aspect | Typical use | When to choose |
-|---|---|---|
-| 1200×675 (16:9) | Rich product demo, multi-scene storytelling, terminal + UI + graph | CLI tools with visual output, apps, dashboards, complex projects |
-| 1200×450 (~8:3) | Compact demo with a primary focus area | Most libraries with one standout feature |
-| 1200×400 (3:1) | Banner-style, tagline + single animated flourish | Simple libraries, frameworks, minimalist vibe |
-| 1200×300 (4:1) | Slim marquee, logo + one beat | Tiny utilities, one-liners, brand-first projects |
-| 1200×200 (6:1) | Ultra-slim status-line feel | CLI themes, shell utilities, prompts |
-| 800×800 (1:1) | Social-card crossover | When the hero will also post to Twitter / LinkedIn |
+Why locked:
+- Predictable craft bar. A 16:9 canvas gives enough room for real content (terminal + editor, multi-scene narrative, brand + demo split) without the skill producing cramped marquees.
+- Consistent export pipeline. Capture, screenshot, and evaluation scripts assume 1200×675; varying dimensions multiplied incidental bugs in past runs.
+- README rendering. At GitHub's ~1000px content width, a 1200-wide hero scales to ~560h — taller than the target repo's current logo, but the visual upgrade is worth the added vertical space. The user can object if they truly want a slimmer hero; default hard, override rare.
 
-Recommend one based on the scan (forcefully, per the recommendation style), then let the user override.
+Other aspect ratios (8:3, 6:1, 1:1, etc.) are not supported defaults. If a user explicitly asks for a slim banner or social-card crossover, build it at 1200×675 and communicate that the export will be cropped for those contexts downstream — don't change the source dimensions.
 
 ---
 
@@ -239,6 +235,8 @@ Single self-contained file. No build step. Sections:
 - **Loop seam**: the last frame should visually match the first (or transition back smoothly). `runLoop()` is the hard reset if needed.
 - **Determinism**: no `Math.random()` without a seed, no `Date.now()`-based logic. Everything must replay identically each capture.
 - **Avoid the NY Times / editorial-newspaper theme**: no serif-headline + rule-lines + dateline + column-grid pastiche. It's become a default AI-design shortcut and reads as generic. Pick a visual language that actually suits the repo's domain (terminal, data-viz, spatial, playful, brutalist, neon, etc.) — not a broadsheet aesthetic unless the repo is explicitly about journalism or publishing.
+- **No drift-prone claims in on-screen copy.** Never hardcode anything that becomes stale the moment upstream ships: version numbers (`v1.9.2`), language/runtime floors (`Node 20+`, `Python 3.10+`), specific dated stats (`6.4k stars`), "last updated" timestamps. The hero outlives any single release; a visible `v1.9.2` turns obsolete the next Tuesday. Allowed timeless claims: package name, license, architecture primitives (e.g. "MCP", "CLI + API"). For countable inventory (number of rules, tools, commands) prefer soft-cap phrasing like **"40+ rules"** over **"44 rules"** so adding one upstream doesn't falsify the hero. Precise counts are acceptable only when you know the inventory is frozen (e.g. a finished tutorial series).
+- **Left-column layout — don't pin content to edges.** In split-stage heroes with a brand/tagline column on the left, avoid `grid-template-rows: auto 1fr auto` or any pattern that parks the bottom row flush against the stage edge — it reads as cramped / "glued-in" at export. Either (a) center the column content vertically (`align-content: center` on the grid) with explicit gaps, or (b) use `grid-template-rows: auto auto 1fr` with meaningful breathing room (≥32px equivalent) below the last content row. Default to option (a) unless the column genuinely has more content than vertical space.
 
 ### 2.5 When to stop writing and preview
 
