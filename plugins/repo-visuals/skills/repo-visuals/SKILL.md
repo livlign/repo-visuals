@@ -196,15 +196,15 @@ Once the brief is locked and the user says "go", write the HTML in **one file** 
 
 ### 2.1 Working directory
 
-Default layout:
+Default layout — always nest per-repo under a subdirectory named after the target repo (e.g. `last30days-skill`, `my-cli`):
 
 ```
-<current-dir>/repo-visuals-work/
+<current-dir>/repo-visuals-work/<repo-name>/
   index.html        # the hero animation source
   assets/           # any images/SVGs the scenario needs
 ```
 
-Use `repo-visuals-work/` so the scratch files stay obviously separate from the target repo.
+Use `repo-visuals-work/<repo-name>/` so the scratch files stay obviously separate from the target repo **and** runs for different repos don't clobber each other. Never write directly into `repo-visuals-work/` — always into the repo-named subfolder. If no obvious repo name, use a short slug derived from the brief.
 
 ### 2.2 Re-read the README before writing
 
@@ -260,9 +260,9 @@ Keep this phase conversational. The goal is to converge on a version the user lo
 
 After writing `index.html`, **give the user the command** to open it themselves (their browser, their timing):
 
-- **Windows**: `start repo-visuals-work/index.html`
-- **macOS**: `open repo-visuals-work/index.html`
-- **Linux**: `xdg-open repo-visuals-work/index.html`
+- **Windows**: `start repo-visuals-work/<repo-name>/index.html`
+- **macOS**: `open repo-visuals-work/<repo-name>/index.html`
+- **Linux**: `xdg-open repo-visuals-work/<repo-name>/index.html`
 
 Tell them to watch **one full loop** (the animation restarts automatically via `runLoop()`).
 
@@ -354,7 +354,7 @@ Based on the format decided in Phase 1.4c:
 
 - **Animated GIF** → continue with §4.3 (GIF pipeline).
 - **Static PNG** → skip to §4.3s (static pipeline).
-- **HTML only** → skip Phase 4 entirely; the hand-off is `repo-visuals-work/index.html`.
+- **HTML only** → skip Phase 4 entirely; the hand-off is `repo-visuals-work/<repo-name>/index.html`.
 
 ### 4.3g GIF pipeline (the proven recipe)
 
@@ -427,8 +427,8 @@ If the HTML has an animation that evolves over time, either:
 
 ### 4.4 Output file name
 
-- Animated → `repo-visuals-work/hero.gif`
-- Static   → `repo-visuals-work/hero.png`
+- Animated → `repo-visuals-work/<repo-name>/hero.gif`
+- Static   → `repo-visuals-work/<repo-name>/hero.png`
 
 Keep in the scratch dir until Phase 5 (Output) moves it.
 
@@ -500,7 +500,7 @@ Stop there.
 
 ### 5.6 Opt-out: local-only
 
-If the user doesn't want a PR, leave `hero.gif` at `repo-visuals-work/hero.gif` and print the path. Don't modify the target repo.
+If the user doesn't want a PR, leave `hero.gif` at `repo-visuals-work/<repo-name>/hero.gif` and print the path. Don't modify the target repo.
 
 ---
 
