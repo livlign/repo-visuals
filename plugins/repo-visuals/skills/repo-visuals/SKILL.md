@@ -247,6 +247,10 @@ Single self-contained file. No build step. Sections:
   - **Never let content exceed the stage.** Any absolute-positioned element with `top: -N` or `right: -N` to create an "overlap" effect will be clipped in export. If you want a visual that bleeds past the stage edge, reposition it inside or fake the bleed with a gradient — do not let real content live outside.
   - **Puppeteer screenshot must use explicit `clip`.** Always pass `clip: { x: 0, y: 0, width: 1200, height: 675 }` to `page.screenshot()` rather than relying on viewport-equals-capture. This guarantees the crop, regardless of scroll offset or body margin that slipped in.
   - **Validate parity before declaring done.** After export, open the exported PNG/GIF side-by-side with `index.html` in the browser. If they don't match visually, the HTML is wrong (not the pipeline) — fix the layout, don't fix the pipeline.
+- **Retina quality is mandatory — never ship a 1× render for anything with text.** The final artifact must look like a native MacBook retina screenshot, not a downscaled print. Heroes are viewed almost entirely on high-DPI laptops and phones, and GitHub adds a ~0.83× column downscale on top — a 1× capture that looks fine locally will render visibly *fuzzy* in production. Symptoms: text edges blur, rule-chips / small badges turn mushy, thin rules and borders get eaten.
+  - **Capture at 2× always.** PNG: `setViewport({ ..., deviceScaleFactor: 2 })` — Puppeteer's `page.screenshot()` respects it. GIF: `deviceScaleFactor` is silently ignored by Chromium's screencast API — see §4.3g for the mandatory workaround (viewport at 2× dimensions + `document.body.style.zoom = 2` + preview-media-query override).
+  - **Source font-size floor on a 1200-wide canvas: ~15.5 px for body text, ~12.5 px for small metadata (rule-chips, locations).** After GitHub's column downscale, those land at ~13 CSS px and ~10 CSS px — the lower bound where text stays readable. Drop below ~13 px source and rendered legibility craters. Headlines / wordmarks scale proportionally up from there (the HTMLHint v3c refresh used 42 px wordmark / 15.5 px body and that is the lower bound, not the target).
+  - **Own benchmark: "like a MacBook retina screenshot."** Put the exported hero next to any other UI chrome on the README (badges, code blocks, surrounding text). If the hero looks softer or stretchier, it's wrong — do not ship. Re-capture at 2× and/or raise source font sizes until the hero is visibly parity with the rest of the page. Real incident: `htmlhint/HTMLHint#1861` shipped a 1× 1200×200 marquee at 11.5 px body text; visual "looks small / fuzzy" feedback required a full retina re-render.
 
 ### 2.5 When to stop writing and preview
 
@@ -368,19 +372,29 @@ Based on the format decided in Phase 1.4c:
 
 Use as-is unless there's a specific reason to deviate.
 
-**Capture:**
+**Capture (2× retina — mandatory for anything with text):**
 
-- Launch Puppeteer (`headless: 'new'`).
-- `setViewport({ width, height, deviceScaleFactor: 1 })`.
+Chromium's `Page.startScreencast` **silently ignores `deviceScaleFactor`**, so the static PNG trick (`deviceScaleFactor: 2`) does not work for GIF. Workaround: enlarge the viewport to 2× the target dimensions and apply `zoom: 2` to the body so the stage renders at 2× density natively. The screencast then emits `2W × 2H` frames and the resulting GIF embeds at native `1200 × H` CSS size on retina displays — sharp.
+
+- Launch Puppeteer (`headless: true` — `'new'` is deprecated).
+- `setViewport({ width: W * 2, height: H * 2, deviceScaleFactor: 1 })` — 2× viewport, DSF left at 1.
 - `page.goto(file://...)` with `waitUntil: 'networkidle0'`.
+- **Override the preview-only media query** so the stage stays flush at `(0, 0)` in the 2× viewport (the `@media (min-width: 1300px)` block from §2.3a will otherwise pad and center the body, clipping the stage):
+  ```js
+  await page.addStyleTag({ content: `
+    html, body { margin: 0 !important; padding: 0 !important; }
+    body { display: block !important; align-items: flex-start !important; justify-content: flex-start !important; }
+  `});
+  ```
+- `await page.evaluate(() => { document.body.style.zoom = '2'; })` — scales the stage to fill the 2× viewport.
 - `await page.evaluateHandle('document.fonts.ready')`.
-- Small real-time settle (300ms).
+- Small real-time settle (300–400 ms, slightly longer than 1× captures because zoom + font reflow take a moment).
 - `await page.evaluate(() => window.runLoop())` to reset the animation to t=0.
 - Create a CDP session: `page.target().createCDPSession()`.
-- Subscribe to `Page.screencastFrame` — save each frame as PNG, record `metadata.timestamp` (seconds).
+- Subscribe to `Page.screencastFrame` — save each frame as PNG, record `metadata.timestamp` (seconds). Verify the first saved frame is `2W × 2H` pixels; if it's still `W × H` the zoom/viewport step didn't apply and you're about to ship a 1× render.
 - `client.send('Page.startScreencast', { format: 'png', everyNthFrame: 1 })`.
-- Wait `duration + 200ms`, then `Page.stopScreencast` and close browser.
-- Write an ffmpeg **concat manifest** with per-frame durations from timestamp deltas — preserves the real paint cadence.
+- Capture until `elapsedMs > DURATION_MS` (no extra padding — anything past `TIMELINE.loopEnd` is the start of the next cycle and will break the loop seam). `DURATION_MS` must equal `TIMELINE.loopEnd` exactly.
+- Close browser. Write an ffmpeg **concat manifest** with per-frame durations from timestamp deltas — preserves the real paint cadence.
 
 **Why screencast, not screenshot-loop or virtual-time:** real screencast records exactly what the compositor paints, including CSS transitions. Screenshot loops drift under load; virtual-time (`Emulation.setVirtualTimePolicy`) freezes the compositor and captures stale frames.
 
