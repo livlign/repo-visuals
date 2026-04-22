@@ -167,22 +167,27 @@ Move to the build phase when all six are settled:
 - [ ] Output format chosen (animated GIF / static PNG / HTML only)
 - [ ] Placement agreed (README / website / social / slide / other)
 - [ ] Duration chosen — animated only (typical: 15–25s loop; default 20s); skip for static
-- [ ] Dimensions confirmed (see §1.7 — locked to 1200×675; do not vary)
+- [ ] Dimensions confirmed (see §1.7 — default 1200×675; tailor when the repo spirit calls for it)
 - [ ] Real inventory count captured from §1.3 scan (if the repo has a countable collection)
 - [ ] Operating mode recorded from §1.1a (Auto / Semi-auto / Manual)
 
 Write the brief back to the user in a compact block. Wait for **"go"** before writing any HTML — *unless* the mode is **Auto**, in which case proceed directly to Phase 2 with a brief summary line and no wait. In **Semi-auto**, show the brief but proceed after a brief pause unless the user interjects. In **Manual**, wait explicitly for "go".
 
-### 1.7 Dimensions — locked
+### 1.7 Dimensions — default with room to tailor
 
-**Always 1200×675 (16:9).** Do not try to match the target repo's existing image dimensions; do not pick a slim banner because the current logo is slim; do not offer the user a choice. This is a hard default.
+**Default: 1200×675 (16:9).** It's the safe pick when the repo gives no strong signal — GitHub's ~1000px README column renders it at ~560h (comfortable but not dominant), and the skill's capture/eval scripts are calibrated around that width. Start here unless the repo *wants* something else.
 
-Why locked:
-- Predictable craft bar. A 16:9 canvas gives enough room for real content (terminal + editor, multi-scene narrative, brand + demo split) without the skill producing cramped marquees.
-- Consistent export pipeline. Capture, screenshot, and evaluation scripts assume 1200×675; varying dimensions multiplied incidental bugs in past runs.
-- README rendering. At GitHub's ~1000px content width, a 1200-wide hero scales to ~560h — taller than the target repo's current logo, but the visual upgrade is worth the added vertical space. The user can object if they truly want a slimmer hero; default hard, override rare.
+**Tailor when the repo's spirit points elsewhere.** Don't force a 16:9 crop onto a project whose identity is clearly another shape. Signals to deviate:
+- **Slim banner (e.g. 1200×300 / 1600×400):** one-line wordmark-led brands, docs sites with an existing slim header, terminal-themed repos where the pitch is a single ribbon of text. Banners read as "logo-bar," not "hero scene" — use shorter loops (10–15s) and fewer scenes.
+- **Square / portrait (1:1, 4:5):** social-first repos, mobile SDKs, anything whose primary surface is a phone. Don't build these for a README header — they're a separate deliverable.
+- **Wider than 16:9 (2:1, 21:9):** data-viz / dashboard / timeline repos whose pitch is lateral scan; spatial tools (maps, CAD, audio waveforms). Only go this wide if the content genuinely fills it — empty wide heroes look lonelier than cramped 16:9 ones.
+- **Taller than 16:9 (4:3, 3:2):** repos with dense stacked panels (notebook screenshots, multi-pane IDEs, documentation browsers) where 675h would truncate the story.
 
-Other aspect ratios (8:3, 6:1, 1:1, etc.) are not supported defaults. If a user explicitly asks for a slim banner or social-card crossover, build it at 1200×675 and communicate that the export will be cropped for those contexts downstream — don't change the source dimensions.
+**How to decide:** during the scan (§1.3), note the existing hero image's dimensions and the repo's format archetype (from `craft/reference-gallery.md`). If they point toward a non-16:9 shape *and* the brief's hero moment fits that shape, propose the tailored size in the direction-questions batch (§1.4) — show the user the default and the tailored option, cite the reason, let them pick. If nothing argues against 1200×675, don't introduce the choice; just use it.
+
+**Craft rules scale with whatever dimensions are chosen** — the font-size floors, bottom-clearance minimums, and column-density rules later in this document are written around 1200×675 but are expressed as ratios (% of stage height, px relative to canvas width) so they port. When you deviate, recompute: e.g. at 1200×400 the body-text floor is still ~2.5% of stage height × retina headroom, not a fixed 17px.
+
+**The capture pipeline already supports arbitrary dimensions** — `scripts/screenshot.js` and `capture.js` both take `--width` and `--height` flags. Pass whatever the brief locked in; don't hardcode 1200×675 in export commands.
 
 ---
 
