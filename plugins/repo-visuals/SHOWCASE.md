@@ -6,33 +6,27 @@ To add yours, see [Contribute](#contribute).
 
 ---
 
-## ast-graph
+<table>
+<tr>
+<td width="50%" valign="top">
 
-[![ast-graph hero](https://raw.githubusercontent.com/emtyty/ast-graph/master/docs/ast-graph-demo.gif)](https://github.com/emtyty/ast-graph)
+<a href="https://github.com/htmlhint/HTMLHint"><img src="https://raw.githubusercontent.com/htmlhint/HTMLHint/main/website/src/assets/img/hero.gif" alt="HTMLHint hero"></a>
+<sub><kbd>2026-04-22</kbd> &nbsp; <a href="https://github.com/htmlhint/HTMLHint"><b>htmlhint/HTMLHint</b></a></sub>
 
-- **For:** [emtyty/ast-graph](https://github.com/emtyty/ast-graph)
-- **Format:** animated GIF
-- **Landed:** [PR #6](https://github.com/emtyty/ast-graph/pull/6) — 2026-04-20
+<br><br>
 
----
+<a href="https://github.com/emtyty/ast-graph"><img src="https://raw.githubusercontent.com/emtyty/ast-graph/master/docs/ast-graph-demo.gif" alt="ast-graph hero"></a>
+<sub><kbd>2026-04-20</kbd> &nbsp; <a href="https://github.com/emtyty/ast-graph"><b>emtyty/ast-graph</b></a></sub>
 
-## everything-claude-code
+</td>
+<td width="50%" valign="top">
 
-[![everything-claude-code hero](https://raw.githubusercontent.com/affaan-m/everything-claude-code/main/assets/hero.png)](https://github.com/affaan-m/everything-claude-code)
+<a href="https://github.com/affaan-m/everything-claude-code"><img src="https://raw.githubusercontent.com/affaan-m/everything-claude-code/main/assets/hero.png" alt="everything-claude-code hero"></a>
+<sub><kbd>2026-04-21</kbd> &nbsp; <a href="https://github.com/affaan-m/everything-claude-code"><b>affaan-m/everything-claude-code</b></a></sub>
 
-- **For:** [affaan-m/everything-claude-code](https://github.com/affaan-m/everything-claude-code)
-- **Format:** static PNG
-- **Landed:** [PR #1532](https://github.com/affaan-m/everything-claude-code/pull/1532), follow-up [#1535](https://github.com/affaan-m/everything-claude-code/pull/1535) — 2026-04-21
-
----
-
-## HTMLHint
-
-[![HTMLHint hero](https://raw.githubusercontent.com/htmlhint/HTMLHint/main/website/src/assets/img/hero.gif)](https://github.com/htmlhint/HTMLHint)
-
-- **For:** [htmlhint/HTMLHint](https://github.com/htmlhint/HTMLHint)
-- **Format:** animated GIF
-- **Landed:** [PR #1861](https://github.com/htmlhint/HTMLHint/pull/1861) — 2026-04-22
+</td>
+</tr>
+</table>
 
 ---
 
@@ -50,19 +44,16 @@ Drop the file into [`showcase/`](./showcase/) in your PR to this repo and refere
 
 ### Entry template
 
-Insert newest first:
+The layout is a 2-column Pinterest-style masonry. To add an entry, append it to whichever `<td>` column is currently shorter (keeps the wall tessellated). Paste this block inside that column:
 
-```markdown
-## <short title — usually the repo name or project name>
+```html
+<a href="<repo URL>"><img src="<raw image URL, or ./showcase/<file> for Option B>" alt="<repo-name> hero"></a>
+<sub><kbd>YYYY-MM-DD</kbd> &nbsp; <a href="<repo URL>"><b>owner/repo</b></a></sub>
 
-[![hero](<raw image URL, or ./showcase/<file> for Option B>)](<optional link target — repo URL, site, or omit>)
-
-- **For:** <what the hero is for — repo link, product name, or "personal project">
-- **Format:** animated GIF | static PNG
-- **Landed:** <YYYY-MM-DD>, optional link to PR or site
+<br><br>
 ```
 
-Only the **hero image**, **format**, and **date** are required. Everything else is nice-to-have.
+Only the **hero image**, **repo link**, and **date** are required.
 
 ### Rules
 
@@ -71,6 +62,6 @@ Only the **hero image**, **format**, and **date** are required. Everything else 
 
 ### PR checklist
 
-- [ ] Entry in date order (newest first)
+- [ ] Entry appended to the shorter column
 - [ ] Image actually renders in the PR preview
-- [ ] Required fields filled in (image, format, date)
+- [ ] Required fields filled in (image, repo link, date)
