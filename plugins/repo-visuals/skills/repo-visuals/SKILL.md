@@ -216,7 +216,7 @@ Open the target repo's README once more right before writing HTML. Mirror its ac
 Before writing any scene copy or layout, read:
 
 - `craft/headlines.md` — headline patterns (imperative-plus-invariant, narrative arc), voice rules, anti-patterns.
-- `craft/templates/*.html` — full working heroes from past runs. Read end-to-end to see how a complete scene system is composed (stage + browser chrome + tool-body + rotating hero text + progress indicator + timeline scheduler). Don't copy verbatim — steal patterns. The `htmlhint-v3c.html` and `everything-claude-code.html` templates are **upstream-merged** — their design passed real maintainer review, so lean on them harder than the `ast-graph-*` drafts when the archetype matches (static product-UI hero for `htmlhint-v3c`, dark README marquee for `everything-claude-code`).
+- `craft/templates/*.html` — full working heroes from past runs, **all upstream-merged** (the maintainers of the target repos accepted them). Read end-to-end to see how a complete scene system is composed (stage + browser chrome + tool-body + rotating hero text + progress indicator + timeline scheduler). Don't copy verbatim — steal patterns. Match by archetype, not by preference ranking.
 
 Every scene needs a headline. A demo without copy delivers no meaning.
 
