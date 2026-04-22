@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Everything Claude Code — hero</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0e0d0b;
+    --panel: #17150f;
+    --panel-2: #1d1a12;
+    --line: #2a2619;
+    --ink: #f4ece0;
+    --muted: #8e8878;
+    --dim: #5e594c;
+    --accent: #d97757;      /* Claude-ish warm terracotta */
+    --accent-2: #e8a87c;
+    --chip: #1a1711;
+    --chip-line: #2e281c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: #000;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 0;
+  }
+  @media screen and (min-width: 1300px) {
+    body { padding: 24px; align-items: center; justify-content: center; }
+  }
+
+  .stage {
+    position: relative;
+    width: 1200px;
+    height: 675px;
+    background:
+      radial-gradient(1200px 500px at 85% -10%, rgba(217,119,87,0.14), transparent 60%),
+      radial-gradient(900px 700px at -10% 110%, rgba(232,168,124,0.06), transparent 60%),
+      linear-gradient(180deg, #0e0d0b 0%, #0a0907 100%);
+    overflow: hidden;
+    border: 1px solid #1a1711;
+  }
+
+  /* Subtle grid */
+  .stage::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+  }
+
+  /* ==== top bar ==== */
+  .topbar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+    background: rgba(14,13,11,0.6);
+    backdrop-filter: blur(6px);
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .mono {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), #b7583c);
+    display: grid; place-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; font-size: 12px; color: #1a0f09;
+    letter-spacing: 0.5px;
+    box-shadow: 0 6px 18px rgba(217,119,87,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .wordmark {
+    font-weight: 700; font-size: 15px; letter-spacing: -0.01em;
+  }
+  .wordmark .slash { color: var(--dim); margin: 0 8px; font-weight: 400; }
+  .wordmark .repo { color: var(--muted); font-weight: 500; }
+
+  .topright {
+    display: flex; align-items: center; gap: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--muted);
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px;
+    border: 1px solid #3a2d1d;
+    background: rgba(217,119,87,0.08);
+    border-radius: 999px;
+    color: var(--accent-2);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .badge::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 8px var(--accent);
+  }
+  .stars { color: var(--ink); font-weight: 600; }
+
+  /* ==== hero copy (left) ==== */
+  .hero {
+    position: absolute;
+    top: 88px; left: 32px;
+    width: 460px;
+  }
+  .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-2);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .kicker::before {
+    content: ""; width: 22px; height: 1px; background: var(--accent);
+  }
+  h1 {
+    font-size: 52px;
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    font-weight: 800;
+    color: var(--ink);
+    margin-bottom: 18px;
+  }
+  h1 .accent { color: var(--accent); }
+  .sub {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--muted);
+    max-width: 440px;
+    margin-bottom: 26px;
+  }
+  .sub strong { color: var(--ink); font-weight: 600; }
+
+  .harness {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .harness-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .harness-row {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 5px 10px;
+    border: 1px solid var(--chip-line);
+    background: var(--chip);
+    color: var(--ink);
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  .pill.primary {
+    border-color: rgba(217,119,87,0.5);
+    color: var(--accent-2);
+    background: rgba(217,119,87,0.06);
+  }
+
+  /* ==== catalog (right) ==== */
+  .catalog {
+    position: absolute;
+    top: 88px; right: 32px;
+    width: 636px;
+    height: 500px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  .col {
+    background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 12px 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .col-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .col-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .col-title .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+  }
+  .col-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--accent-2);
+    font-weight: 700;
+  }
+  .items {
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .item {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink);
+    padding: 6px 9px;
+    background: rgba(255,255,255,0.015);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.005em;
+  }
+  .item::before {
+    content: "";
+    display: inline-block;
+    width: 4px; height: 4px;
+    background: var(--dim);
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  .item.hi {
+    color: var(--accent-2);
+    background: rgba(217,119,87,0.06);
+    border-color: rgba(217,119,87,0.2);
+  }
+  .item.hi::before { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+  .item.dim { color: var(--muted); }
+  .item.dim::before { background: var(--dim); }
+
+  .col-fade {
+    position: absolute;
+    left: 0; right: 0; bottom: 0; height: 80px;
+    background: linear-gradient(180deg, transparent 0%, var(--panel-2) 85%);
+    pointer-events: none;
+  }
+  .col-more {
+    position: absolute;
+    left: 0; right: 0; bottom: 10px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* ==== bottom stats ==== */
+  .stats {
+    position: absolute;
+    left: 32px; right: 32px; bottom: 20px;
+    height: 56px;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stat-row { display: flex; gap: 28px; align-items: baseline; }
+  .stat { display: flex; align-items: baseline; gap: 6px; }
+  .stat .n { font-size: 18px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; }
+  .stat .l { font-size: 10px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+  .foot {
+    font-size: 10px; color: var(--dim); letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .foot b { color: var(--muted); font-weight: 600; }
+
+  /* corner marker */
+  .corner {
+    position: absolute;
+    top: 72px; right: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--dim);
+    letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="mono">ECC</div>
+      <div class="wordmark">
+        Everything Claude Code
+        <span class="slash">/</span>
+        <span class="repo">affaan-m/everything-claude-code</span>
+      </div>
+    </div>
+    <div class="topright">
+      <div class="badge">v1.10.0 · Apr 2026</div>
+    </div>
+  </div>
+
+  <!-- Hero copy -->
+  <div class="hero">
+    <div class="kicker">v1.10 · the system, not the configs</div>
+    <h1>The performance system for <span class="accent">AI agent harnesses.</span></h1>
+    <div class="sub">
+      Skills, instincts, memory, security scanning, and research-first development —
+      a complete system, <strong>not a config pack</strong>.
+    </div>
+
+    <div class="harness">
+      <div class="harness-label">Runs across</div>
+      <div class="harness-row">
+        <div class="pill primary">Claude Code</div>
+        <div class="pill">Codex</div>
+        <div class="pill">Cursor</div>
+        <div class="pill">OpenCode</div>
+        <div class="pill">Gemini</div>
+        <div class="pill">Kiro</div>
+        <div class="pill">Trae</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Catalog -->
+  <div class="catalog">
+
+    <div class="col">
+      <div class="col-head">
+        <div class="col-title"><span class="dot"></span>Skills</div>
+        <div class="col-count">183</div>
+      </div>
+      <div class="items">
+        <div class="item hi">agent-harness-construction</div>
+        <div class="item">context-budget</div>
+        <div class="item">continuous-agent-loop</div>
+        <div class="item">claude-api</div>
+        <div class="item">autonomous-loops</div>
+        <div class="item">mcp-server-patterns</div>
+        <div class="item">ai-regression-testing</div>
+        <div class="item">agent-eval</div>
+        <div class="item">content-hash-cache-pattern</div>
+        <div class="item">bun-runtime</div>
+        <div class="item dim">codebase-onboarding</div>
+        <div class="item dim">nextjs-turbopack</div>
+        <div class="item dim">api-connector-builder</div>
+      </div>
+      <div class="col-fade"></div>
+      <div class="col-more">+ 170 more</div>
+    </div>
+
+    <div class="col">
+      <div class="col-head">
+        <div class="col-title"><span class="dot"></span>Agents</div>
+        <div class="col-count">48</div>
+      </div>
+      <div class="items">
+        <div class="item hi">harness-optimizer</div>
+        <div class="item">code-reviewer</div>
+        <div class="item">code-architect</div>
+        <div class="item">code-simplifier</div>
+        <div class="item">gan-planner</div>
+        <div class="item">gan-generator</div>
+        <div class="item">gan-evaluator</div>
+        <div class="item">e2e-runner</div>
+        <div class="item">build-error-resolver</div>
+        <div class="item">a11y-architect</div>
+        <div class="item dim">database-reviewer</div>
+        <div class="item dim">doc-updater</div>
+        <div class="item dim">go-reviewer</div>
+      </div>
+      <div class="col-fade"></div>
+      <div class="col-more">+ 38 more</div>
+    </div>
+
+    <div class="col">
+      <div class="col-head">
+        <div class="col-title"><span class="dot"></span>Commands</div>
+        <div class="col-count">79</div>
+      </div>
+      <div class="items">
+        <div class="item hi">/harness-audit</div>
+        <div class="item">/code-review</div>
+        <div class="item">/feature-dev</div>
+        <div class="item">/checkpoint</div>
+        <div class="item">/context-budget</div>
+        <div class="item">/eval</div>
+        <div class="item">/evolve</div>
+        <div class="item">/gan-design</div>
+        <div class="item">/hookify</div>
+        <div class="item">/agent-sort</div>
+        <div class="item dim">/docs</div>
+        <div class="item dim">/go-test</div>
+        <div class="item dim">/e2e</div>
+      </div>
+      <div class="col-fade"></div>
+      <div class="col-more">+ 66 more</div>
+    </div>
+
+  </div>
+
+  <!-- Bottom stats -->
+  <div class="stats">
+    <div class="stat-row">
+      <div class="stat"><span class="n">310</span><span class="l">Catalog</span></div>
+      <div class="stat"><span class="n">7</span><span class="l">Harnesses</span></div>
+      <div class="stat"><span class="n">ECC 2.0α</span><span class="l">Rust plane</span></div>
+      <div class="stat"><span class="n">MIT</span></div>
+    </div>
+    <div class="foot">npm: <b>ecc-universal</b> · AgentShield</div>
+  </div>
+
+</div>
+</body>
+</html>
