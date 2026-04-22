@@ -10,8 +10,8 @@ To add yours, see [Contribute](#contribute).
 <tr>
 <td width="50%" valign="top">
 
-<a href="https://github.com/htmlhint/HTMLHint"><img src="https://raw.githubusercontent.com/htmlhint/HTMLHint/main/website/src/assets/img/hero.gif" alt="HTMLHint hero"></a>
-<sub><kbd>2026-04-22</kbd> &nbsp; <a href="https://github.com/htmlhint/HTMLHint"><b>htmlhint/HTMLHint</b></a></sub>
+<a href="https://github.com/htmlhint/HTMLHint"><img src="https://raw.githubusercontent.com/htmlhint/HTMLHint/main/website/src/assets/img/hero.gif?v=retina" alt="HTMLHint hero"></a>
+<sub><kbd>2026-04-22</kbd> &nbsp; <a href="https://github.com/htmlhint/HTMLHint"><b>htmlhint/HTMLHint</b></a> &nbsp; <em>retina refresh — <a href="https://github.com/htmlhint/HTMLHint/pull/1863">#1863</a></em></sub>
 
 <br><br>
 
