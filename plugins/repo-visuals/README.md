@@ -2,11 +2,11 @@
 
 ![repo-visuals — a Claude Code plugin that turns any repo into a bespoke hero visual. Scans, proposes scenarios, renders animated GIF or static PNG. 5 phases, 3 operating modes, 3 output formats.](./assets/hero.gif)
 
-A Claude Code plugin for producing hero visuals — **animated GIF** or **static PNG** — for GitHub repositories.
+A Claude Code plugin for designing **bespoke GitHub README hero visuals** — **animated GIF** or **static PNG** — for any open-source repository.
 
-The plugin scans the target repo, recommends a format based on the repo's identity, generates bespoke HTML via a structured discovery dialog, previews it in the browser, and exports to an optimized GIF or retina PNG.
+The plugin scans the target repo, recommends a format that fits its identity (terminal demo, product UI, brand-first wordmark, banner, diagram-as-hero), generates bespoke HTML through a structured discovery dialog, previews it in your browser, and exports a retina-quality artifact ready to drop into the README.
 
-See [`SHOWCASE.md`](./SHOWCASE.md) for heroes that landed in their target repo.
+See [`SHOWCASE.md`](./SHOWCASE.md) for heroes that have landed in their target repos.
 
 ## Install
 
