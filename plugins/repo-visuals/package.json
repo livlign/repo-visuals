@@ -1,7 +1,7 @@
 {
   "name": "repo-visuals",
   "version": "1.0.0",
-  "description": "A Claude Code skill for producing hero visuals — **animated GIF** or **static PNG** — for GitHub repositories. Later: social cards, MP4 demos.",
+  "description": "Claude Code plugin that designs bespoke GitHub README hero visuals — animated GIF or static PNG — through a structured discovery dialog. Retina capture, scope-matched copy, optional upstream PR.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,7 +10,20 @@
     "type": "git",
     "url": "git+https://github.com/livlign/claude-skills.git"
   },
-  "keywords": [],
+  "keywords": [
+    "claude-code",
+    "claude-code-plugin",
+    "claude-code-skill",
+    "github",
+    "readme",
+    "readme-hero",
+    "readme-banner",
+    "hero-gif",
+    "hero-image",
+    "open-source",
+    "puppeteer",
+    "ffmpeg"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",

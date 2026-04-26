@@ -8,13 +8,13 @@ A small marketplace of Claude Code plugins I ship.
 
 ---
 
-## `repo-visuals` — hero GIFs and PNGs for GitHub repos
+## `repo-visuals` — bespoke GitHub README heroes
 
 ```
 /plugin install repo-visuals@livlign
 ```
 
-Animated GIF or static PNG hero visuals for any GitHub repo. The skill scans the repo, recommends a format, proposes scenarios, designs a bespoke HTML stage, previews it in your browser, and exports — then optionally opens the PR upstream.
+A Claude Code plugin that designs README hero visuals — animated GIF or static PNG — for GitHub repositories. The skill scans the target repo, recommends a format that fits its identity, proposes scenarios, designs a bespoke HTML stage, previews it in your browser, and exports a retina-quality artifact — then optionally opens the upstream PR.
 
 A few have been merged. See the [showcase](./plugins/repo-visuals/SHOWCASE.md), or jump to [`plugins/repo-visuals`](./plugins/repo-visuals) for the full skill.
 
