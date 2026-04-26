@@ -93,7 +93,11 @@ Gather as much as possible before asking the user anything. Goal: Claude should 
 - If `ast-graph` is available locally and the repo has supported languages: run `scan` + `hotspots` + `symbol` on top-level exports for structural inventory.
 - **Count the real inventory** — if the repo exposes a collection (tools, commands, pages, themes, plugins, routes), count them from source (route files, `src/tools/*`, CLI command registrations, etc.). Do not estimate from the README. This number is used later: any hero that says "all", "every", "the whole", or shows a grid meant to represent scope must match this count — or explicitly frame itself as a sample ("10 of 30 shown", scroll affordance, "30+"). An undercount reads as a broken promise.
 
-Summarize findings back to the user in ~6–10 bullets so they can correct misreadings early. Include the inventory count when one exists.
+Summarize findings back to the user in ~6–10 bullets so they can correct misreadings early. Include the inventory count when one exists. **If the scan finds an existing hero**, branch into §1.3a before continuing to direction questions.
+
+### 1.3a Redesign vs greenfield (only if an existing hero is found)
+
+If the scan surfaced an existing hero, branch into the redesign protocol *before* §1.4. Surface the existing file (path, format, age, README placement), then `AskUserQuestion` the entry mode — **Redesign (carry forward)** / **Fresh (ignore existing)** / **Replace in place** — and follow the matching steps. Full protocol (entry-mode question, critique structure, carry-forward rules, scenario constraints) in `craft/redesign.md`.
 
 ### 1.4 Direction questions (after the scan summary)
 
@@ -241,32 +245,18 @@ Single self-contained file. No build step. Sections:
 - **Loop seam**: the last frame should visually match the first (or transition back smoothly). `runLoop()` is the hard reset if needed.
 - **Determinism**: no `Math.random()` without a seed, no `Date.now()`-based logic. Everything must replay identically each capture.
 - **Avoid the NY Times / editorial-newspaper theme**: no serif-headline + rule-lines + dateline + column-grid pastiche. It's become a default AI-design shortcut and reads as generic. Pick a visual language that actually suits the repo's domain (terminal, data-viz, spatial, playful, brutalist, neon, etc.) — not a broadsheet aesthetic unless the repo is explicitly about journalism or publishing.
-- **No drift-prone claims in on-screen copy.** Never hardcode anything that becomes stale the moment upstream ships or the clock ticks forward. The hero outlives any single release — a visible `v1.9.2` turns obsolete the next Tuesday, a visible `6.4k stars` turns obsolete the next weekend.
-  - **Banned as exact values:** version numbers (`v1.9.2`, `2.0.0-rc3`), language/runtime floors (`Node 20+`, `Python 3.10+` — these bump every ~2yrs), star counts (`6.4k stars`), download counts (`12M weekly`), contributor counts (`52 contributors`), "last updated" / release dates, benchmark figures pulled from a specific build.
-  - **Allowed timeless claims:** package name, license, architecture primitives (e.g. "MCP", "CLI + API"), domain nouns ("semantic search", "static analysis"), scope words ("multi-platform", "zero-config").
-  - **Soft-cap rule for drift-prone stats:** if a number genuinely helps the pitch, phrase it as **`<next lower round number>+`** so upstream movement doesn't falsify it. Examples: `44 rules → "40+ rules"`, `6,421 stars → "6k+ stars"`, `127 contributors → "100+ contributors"`, `12.3M weekly downloads → "10M+ weekly downloads"`. Round **down** to the nearest meaningful milestone — never round up, and never pick a cap the number is about to cross (a `9k+ stars` claim on a 9.1k repo is a landmine; use `9k+` only when the repo is comfortably past that for months, otherwise drop to `5k+`).
-  - **Precise counts acceptable only when frozen:** finished tutorial series, explicitly versioned snapshots, historical data — contexts where the count is *designed* not to move.
-- **Left-column layout — don't pin content to edges.** In split-stage heroes with a brand/tagline column on the left, avoid `grid-template-rows: auto 1fr auto` or any pattern that parks the bottom row flush against the stage edge — it reads as cramped / "glued-in" at export. Either (a) center the column content vertically (`align-content: center` on the grid) with explicit gaps, or (b) use `grid-template-rows: auto auto 1fr` with meaningful breathing room (≥32px equivalent) below the last content row. Default to option (a) unless the column genuinely has more content than vertical space.
-- **Match density across columns — don't let the left go empty while the right fills the stage.** Split-stage composition failure: the title block on the left ends by the time the right-side product mock is only ~40% of the way down. The user reads it as a lopsided stage with a dead zone in the lower-left. Fix by placing secondary content (stats strip, language chips, quality gate, CTA pill, *anything* supporting the pitch) right under the title block in the left column, sitting on its own rule or divider — instead of bottom-pinning it with `bottom: Xpx`, which creates a large vertical gap *and* jams the footer against the edge.
-- **Bottom-anchored elements need real clearance, not 16–24 px.** A stats strip, repo slug, or CTA anchored with `bottom: 18px` / `bottom: 24px` reads as "jammed against the edge" at both HTML preview and export. Bottom-pinned footer-style elements want **≥40 px** from the stage bottom edge, and the content immediately above them wants **≥32 px** vertical gap so the footer doesn't kiss the preceding row. If the math says the bottom anchor has less than that, reduce the stage height (trim dead space) before nudging the footer down — clamped bottom clearance is a stage-sizing problem disguised as a positioning problem. Real incident: a Terminal.Gui hero shipped with `bottom: 22px` and the bottom line visibly hugged the edge; fix was `stage height 675 → 580` plus `bottom: 28px`, not just "move it".
-- **If a rule applies only in one region, scope the selector to that region.** Classes like `.row`, `.item`, `.card`, `.stat` are ubiquitous shortcuts — don't style them as plain `.row { display: grid; grid-template-columns: 80px 1fr }` at the top level, because every unrelated `.row` elsewhere in the stage (tree row, menu row, metric row) will silently inherit that grid and render broken. Scope the selector: `.form .row`, `.sidebar .item`, `.metrics .card`. Real incident: a Terminal.Gui mock had the tree pane's rows render as stacked two-cell grids (arrow on one line, label on another) because the form's `.row` grid leaked globally.
-- **Preview-vs-export parity — the HTML the user sees is the PNG/GIF they get.** A recurring failure mode: `index.html` looks perfect in the browser, but the exported PNG/GIF is cropped or shifted because the browser's natural centering (`body { display: grid; place-items: center }`) + the stage's `box-shadow` + any body padding collectively move the stage away from the `(0, 0)` origin the capture pipeline samples from. Rules to prevent this:
-  - **Body must pin the stage at (0, 0) for export.** Either drop the centering entirely (`body { margin: 0; padding: 0 }` with the stage at flow position) or wrap centering in `@media (min-height: 800px)` so headless Chrome at the capture viewport lands at origin. Never rely on `place-items: center` alone if the capture viewport equals the stage size exactly.
-  - **`box-shadow` on the stage is for the HTML preview only.** Shadows extend outside the 1200×675 box and get guillotined by the capture crop — fine, expected. But don't rely on the shadow as a visual boundary; the content inside the stage must read as complete without the shadow.
-  - **Never let content exceed the stage.** Any absolute-positioned element with `top: -N` or `right: -N` to create an "overlap" effect will be clipped in export. If you want a visual that bleeds past the stage edge, reposition it inside or fake the bleed with a gradient — do not let real content live outside.
-  - **Puppeteer screenshot must use explicit `clip`.** Always pass `clip: { x: 0, y: 0, width: 1200, height: 675 }` to `page.screenshot()` rather than relying on viewport-equals-capture. This guarantees the crop, regardless of scroll offset or body margin that slipped in.
-  - **Validate parity before declaring done.** After export, open the exported PNG/GIF side-by-side with `index.html` in the browser. If they don't match visually, the HTML is wrong (not the pipeline) — fix the layout, don't fix the pipeline.
-- **Retina quality is mandatory — never ship a 1× render for anything with text.** The final artifact must look like a native MacBook retina screenshot, not a downscaled print. Heroes are viewed almost entirely on high-DPI laptops and phones, and GitHub adds a ~0.83× column downscale on top — a 1× capture that looks fine locally will render visibly *fuzzy* in production. Symptoms: text edges blur, rule-chips / small badges turn mushy, thin rules and borders get eaten.
-  - **Capture at 2× always.** PNG: `setViewport({ ..., deviceScaleFactor: 2 })` — Puppeteer's `page.screenshot()` respects it. GIF: `deviceScaleFactor` is silently ignored by Chromium's screencast API — see §4.3g for the mandatory workaround (viewport at 2× dimensions + `document.body.style.zoom = 2` + preview-media-query override).
-  - **Source font-size floor on a 1200-wide canvas: ~15.5 px for body text, ~12.5 px for small metadata (rule-chips, locations).** After GitHub's column downscale, those land at ~13 CSS px and ~10 CSS px — the lower bound where text stays readable. Drop below ~13 px source and rendered legibility craters. Headlines / wordmarks scale proportionally up from there (the HTMLHint v3c refresh used 42 px wordmark / 15.5 px body and that is the lower bound, not the target).
-  - **Own benchmark: "like a MacBook retina screenshot."** Put the exported hero next to any other UI chrome on the README (badges, code blocks, surrounding text). If the hero looks softer or stretchier, it's wrong — do not ship. Re-capture at 2× and/or raise source font sizes until the hero is visibly parity with the rest of the page. Real incident: `htmlhint/HTMLHint#1861` shipped a 1× 1200×200 marquee at 11.5 px body text; visual "looks small / fuzzy" feedback required a full retina re-render.
-- **Symmetry is load-bearing — check paddings, margins, and anchors deliberately.** Before ship, verify top-padding = bottom-padding and left-margin = right-margin. When shrinking a right-anchored element (e.g., `shot-wrap` with `right: 24px`), preserve its **left-edge position**, not its right margin — otherwise the left whitespace gap grows as the element narrows, creating an orphan composition. Real incident (Terminal.Gui hero, April 2026): initial layout had `top: 56px` on the title block and `bottom: 26px` on the footer — user called it out; later the demo shrank from 788×528 to 686×460 while `right: 24` stayed fixed, so the left gap grew from 44 → 146 px. Fix combined (a) equalize top/bottom padding, (b) equalize left/right margins by trimming the stage width, (c) preserve the demo's left-edge position when resizing.
-- **On-screen labels must read cold — no cryptic abbreviations.** If a first-time viewer can't explain a label in two seconds, rewrite. Real incident: a `'17 / Since` stat was meant to say "released in 2017" — user asked what it meant; fix was `Since 2017` or drop the stat. Apply this check during §3.2 preview review.
-- **Embedding a user- or reviewer-provided asset inside the hero has its own rulebook.** When a demo GIF, MOV, screenshot, or logo must appear *inside* the outer hero frame (not as chrome around it):
-  - **Loop alignment.** The inner asset's loop length must equal the outer loop, or be a clean divisor of it. If the source is mismatched (e.g. a 37.7 s demo inside a 20 s outer loop), re-encode with `ffmpeg -filter_complex "setpts=<ratio>*PTS"` to speed-trim *before* embedding. A seamless inner = seamless outer.
-  - **Native-source resolution.** Keep the inner at its native source dimensions — don't pre-downscale. The browser needs the most pixels it can get to sample from during the outer retina capture; pre-downscaling compounds with the outer's own downscale and visibly blurs the final.
-  - **Palette budget.** A colorful inner + colorful outer chrome will blow the 256-color GIF palette. Keep the outer chrome monochrome or low-chroma so the inner's colors pop; don't compete with the inner for palette slots.
-  - **Reviewer assets are sacred.** If a reviewer or upstream contributor supplied the asset, do not silently replace it with a self-generated recording — that re-opens their review. If a replacement genuinely is better, flag the scope change explicitly and ask before swapping.
+- **No drift-prone claims in on-screen copy.** No version numbers, star counts, download counts, contributor counts, language-floor versions, or release dates as exact values — they go stale fast. Use `<next lower round number>+` ("40+ rules", "6k+ stars") when a number helps the pitch. Full banned/allowed list and soft-cap reasoning in `craft/rules.md`.
+- **Layout discipline (split-stage, anchors, scoping).** The bullets that bite during build:
+  - Don't pin a left-column's bottom row flush to the edge — center the column or leave ≥32 px breathing room.
+  - Don't let one column run empty while the other fills — match density with secondary content right under the title block, not bottom-pinned 200 px below.
+  - Bottom-anchored footer elements need ≥40 px clearance and ≥32 px gap above. If the math doesn't work, shrink stage height — don't just nudge.
+  - Scope generic class selectors to a region (`.form .row`, not bare `.row`) so they don't leak into the rest of the stage.
+  - On-screen labels must read cold — no cryptic abbreviations a first-time viewer can't decode in two seconds.
+  - Symmetry is load-bearing — top-pad = bottom-pad, left-margin = right-margin. When shrinking a right-anchored element, preserve its left-edge position, not its right margin.
+  - Full incident write-ups for each in `craft/rules.md`.
+- **Preview-vs-export parity.** The HTML the user previews must equal the exported pixel grid: pin the stage at `(0, 0)`, treat `box-shadow` as preview-only, never let content exceed the stage, always pass an explicit `clip` to `page.screenshot()`, and visually diff the export against the HTML before declaring done. Detail in `craft/rules.md`.
+- **Retina quality is mandatory.** Capture at 2× always (PNG via `deviceScaleFactor: 2`; GIF via the zoom-fallback in `craft/export.md`). Source font floor on a 1200-wide canvas is ~15.5 px body / ~12.5 px metadata after GitHub's ~0.83× downscale. The own benchmark is "looks like a native MacBook retina screenshot" sitting next to other chrome on the README.
+- **Embedding a user- or reviewer-provided asset has its own rulebook.** Loop must equal or cleanly divide the outer loop; keep inner at native resolution; budget palette by keeping outer chrome low-chroma; never silently replace a reviewer's asset. Full version in `craft/rules.md`.
 
 ### 2.5 When to stop writing and preview
 
@@ -338,7 +328,7 @@ The user may not fully know what they want. Keep watching for mismatches between
 
 When you spot a mismatch, flag it proactively ("the README leans 'fast' but the current pacing is slower — intentional, or should we tighten?"). Deliver intent, not just instructions.
 
-**"Reduce" means reduce — directional verbs are load-bearing.** When the user pairs a directional verb (*reduce*, *smaller*, *tighten*, *cut*, *shrink*, *trim*) with a relational clause (*"so that padding A equals padding B"*, *"to match X"*), treat the directional verb as the binding constraint. If the easy execution of the relational clause would violate the direction — e.g., equalizing padding by growing the demo — stop and restate rather than execute. Real incident: user said *"reduce the height so the padding Cross-platform to top equal MIT to bottom"* — I executed as "equalize padding" and grew the demo from 749×502 to 788×528; user had to correct *"I meant reduce the size, not increase it to bigger."* The literal word was clear; the misread cost a capture-and-encode round trip.
+**"Reduce" means reduce — directional verbs are load-bearing.** When the user pairs a directional verb (*reduce*, *smaller*, *tighten*, *cut*, *shrink*, *trim*) with a relational clause (*"so A equals B"*, *"to match X"*), treat the directional verb as the binding constraint. If executing the relational clause would violate the direction — e.g., equalizing padding by growing the demo — stop and restate rather than execute. Incident detail in `craft/rules.md`.
 
 ---
 
@@ -370,114 +360,17 @@ Check presence, list missing, ask the user before installing:
 
 Never install silently. Show the plan, ask, then act.
 
-### 4.2 Capture script (reused across repos)
+### 4.2 Branch on chosen format
 
-Ship at `<skill-dir>/scripts/capture.js`. Accepts CLI args:
+Based on the format decided in §1.4c:
 
-```
-node capture.js --html <path-to-index.html> --out <frames-dir> --duration 20700 --width 1200 --height 675
-```
-
-### 4.3 Branch on chosen format
-
-Based on the format decided in Phase 1.4c:
-
-- **Animated GIF** → continue with §4.3 (GIF pipeline).
-- **Static PNG** → skip to §4.3s (static pipeline).
+- **Animated GIF** → run the GIF pipeline. Recipe in `craft/export.md`.
+- **Static PNG** → run the static pipeline. Recipe in `craft/export.md`.
 - **HTML only** → skip Phase 4 entirely; the hand-off is `repo-visuals-work/<repo-name>/index.html`.
 
-### 4.3g GIF pipeline (the proven recipe)
+`scripts/capture.js` (GIF) and `scripts/screenshot.js` (PNG) wrap the recipes; both default to 2× retina and accept `--width` / `--height`. Don't hardcode 1200×675 in invocations — pass what the brief locked in.
 
-Use as-is unless there's a specific reason to deviate.
-
-**Capture (2× retina — mandatory for anything with text):**
-
-**Preferred path (current Chromium honors `deviceScaleFactor` during screencast):**
-
-- Launch Puppeteer (`headless: true` — `'new'` is deprecated).
-- `setViewport({ width: W, height: H, deviceScaleFactor: 2 })`. Screencast frames emit at `2W × 2H`.
-- `page.goto(file://...)` with `waitUntil: 'networkidle0'`.
-- `await page.evaluateHandle('document.fonts.ready')`.
-- Small real-time settle (300–400 ms).
-- `await page.evaluate(() => window.runLoop())` to reset animation to t=0.
-- Subscribe to `Page.screencastFrame`, save each frame as PNG. Verify the first saved frame is `2W × 2H` — if it's `W × H`, `deviceScaleFactor` is being ignored and you need the fallback below.
-- `client.send('Page.startScreencast', { format: 'png', everyNthFrame: 1 })`.
-
-This is what `scripts/capture.js --scale 2` (default) now does.
-
-**Fallback (if a future Chromium/Puppeteer silently ignores `deviceScaleFactor` in screencast):** enlarge the viewport to 2× the target dimensions and apply `zoom: 2` to the body so the stage renders at 2× density natively. Use this only if the preferred path produces 1× frames:
-
-- `setViewport({ width: W * 2, height: H * 2, deviceScaleFactor: 1 })`.
-- Override the preview-only media query so the stage stays flush at `(0, 0)`:
-  ```js
-  await page.addStyleTag({ content: `
-    html, body { margin: 0 !important; padding: 0 !important; }
-    body { display: block !important; align-items: flex-start !important; justify-content: flex-start !important; }
-  `});
-  ```
-- `await page.evaluate(() => { document.body.style.zoom = '2'; })`.
-- `await page.evaluateHandle('document.fonts.ready')`.
-- Small real-time settle (300–400 ms, slightly longer than 1× captures because zoom + font reflow take a moment).
-- `await page.evaluate(() => window.runLoop())` to reset the animation to t=0.
-- Create a CDP session: `page.target().createCDPSession()`.
-- Subscribe to `Page.screencastFrame` — save each frame as PNG, record `metadata.timestamp` (seconds). Verify the first saved frame is `2W × 2H` pixels; if it's still `W × H` the zoom/viewport step didn't apply and you're about to ship a 1× render.
-- `client.send('Page.startScreencast', { format: 'png', everyNthFrame: 1 })`.
-- Capture until `elapsedMs > DURATION_MS` (no extra padding — anything past `TIMELINE.loopEnd` is the start of the next cycle and will break the loop seam). `DURATION_MS` must equal `TIMELINE.loopEnd` exactly.
-- Close browser. Write an ffmpeg **concat manifest** with per-frame durations from timestamp deltas — preserves the real paint cadence.
-
-**Why screencast, not screenshot-loop or virtual-time:** real screencast records exactly what the compositor paints, including CSS transitions. Screenshot loops drift under load; virtual-time (`Emulation.setVirtualTimePolicy`) freezes the compositor and captures stale frames.
-
-**Encode (two-pass palette):**
-
-```bash
-# Pass 1: palette built from 2× frames, lanczos-downscaled to target size
-ffmpeg -y -f concat -safe 0 -i frames.txt \
-  -vf "fps=24,scale=<W>:<H>:flags=lanczos+accurate_rnd+full_chroma_int,palettegen=stats_mode=full:max_colors=256" \
-  palette.png
-
-# Pass 2: apply palette with sharp-text dither, same lanczos downscale
-ffmpeg -y -f concat -safe 0 -i frames.txt -i palette.png \
-  -lavfi "fps=24,scale=<W>:<H>:flags=lanczos+accurate_rnd+full_chroma_int [x]; [x][1:v] paletteuse=dither=bayer:bayer_scale=3:diff_mode=rectangle" \
-  -loop 0 hero.gif
-```
-
-- **`scale=<W>:<H>:flags=lanczos+accurate_rnd+full_chroma_int` in *both* passes.** Frames from `capture.js --scale 2` are `2W × 2H`; this downscales them to the target dimensions cleanly. Omitting the downscale ships a final GIF at doubled dimensions (acceptable on retina but bloats file size ~4×).
-- **`stats_mode=full`** — analyzes every pixel, giving chrome text equal weight to motion regions. Use `stats_mode=diff` only if the hero is mostly-static with a small moving region and text sharpness isn't a concern.
-- **`bayer:bayer_scale=3`** — sharper than `bayer_scale=5`; try `dither=none` if text is still blurry and gradients are minimal (~30% file-size cost).
-- **`fps=24` is a good default** (20s × 24 = 480 frames). `fps=30` looks buttery but bloats file size; drop to `fps=20` or `fps=18` if over the 10 MB target.
-
-**Size budget:**
-
-- **Target: ≤ 10 MB** — default cap. Renders cleanly on GitHub, mobile / slow connections don't suffer.
-- **Hard max: 15 MB** — only if the content genuinely requires it *and* the user has confirmed they accept the bigger file. Never exceed silently.
-- Reduction ladder when over 10 MB: drop to `fps=20` → drop to `fps=15` → `max_colors=192` → `max_colors=128` → shorten loop. Apply in order; stop as soon as under budget.
-
-### 4.3s Static PNG pipeline
-
-For the static format, skip ffmpeg entirely — a single crisp screenshot is enough.
-
-**Capture via Puppeteer:**
-
-- Launch Puppeteer (`headless: 'new'`).
-- `setViewport({ width, height, deviceScaleFactor: 2 })` — retina-crisp for README rendering at native size.
-- `page.goto(file://...)` with `waitUntil: 'networkidle0'`.
-- `await page.evaluateHandle('document.fonts.ready')`.
-- Settle 500ms so any entrance transition finishes.
-- `await page.screenshot({ path: 'hero.png', type: 'png', omitBackground: false })`.
-
-If the HTML has an animation that evolves over time, either:
-- Design the static HTML to render its final/decisive frame at t=0 (preferred), or
-- Before the screenshot: `await page.evaluate(() => window.seekTo(<seconds>))` if the source HTML exposes such a hook.
-
-**Optional compression:** run `pngquant --quality=80-95 hero.png --output hero.png --force` if the PNG is over ~500 KB. Static heroes rarely need it.
-
-**Size budget:**
-
-- Target: ≤ 500 KB for a 1200-wide retina PNG. If over 1 MB, compress.
-
-**Ship script:** `node scripts/screenshot.js --html <path> --out hero.png --width 1200 --height 675` (thin wrapper around the steps above — see `scripts/screenshot.js`).
-
-### 4.4 Output file name
+### 4.3 Output file name
 
 - Animated → `repo-visuals-work/<repo-name>/hero.gif`
 - Static   → `repo-visuals-work/<repo-name>/hero.png`
@@ -486,117 +379,17 @@ Keep in the scratch dir until Phase 5 (Output) moves it.
 
 ---
 
-### Appendix — future formats
-
-Future formats Claude may extend this skill with — not part of the current export pipeline:
-
-- **MP4 / WebM loop** — `libx264 -crf 18` or `libvpx-vp9 -crf 32`. Higher fidelity, smaller files. Note: GitHub renders `.mp4` uploaded via issue/PR drag-and-drop but not `.mp4` checked into the repo and linked in markdown.
-- **Square social card (800×800 or 1200×1200)** — variant of static PNG, often reframed rather than cropped, with headline overlay tuned for LinkedIn / Twitter preview rendering.
-- **9-frame contact sheet** — helper for picking the decisive moment of a long animation before static export.
-
----
-
 ## Phase 5 — Output
 
-Move `hero.gif` from the scratch dir into the target repo, update the README, and optionally open a PR.
+Move `hero.gif` / `hero.png` from the scratch dir into the target repo, update the README, optionally open a PR. Full mechanics in `craft/ship.md`. Decision-tree headlines:
 
-### 5.1 Placement in the target repo
+- **Placement.** Infer from convention (`assets/` → `docs/` → `.github/` → default `assets/hero.gif`); ask before creating dirs. Default to **image + README line only** — no `hero.html`, no maintenance docs, unless the reviewer asks, the repo has precedent, or the user opts in. (Premature source-bundling is a top reviewer complaint — see `craft/ship.md` for incident links.)
+- **README embed.** Insert at the top by default; replace existing only with confirmation. **Alt text is informational** — convey the stats / positioning the image shows, not just `<repo-name> demo`. **Always use relative paths** — never `raw.githubusercontent.com/...`, even if the rest of the README does (legacy debt; doesn't render in forks/PR previews).
+- **Commit & PR.** Branch `docs/add-hero-gif` unless repo convention differs. Co-author footer **default OFF** — only on explicit opt-in. User-owns-repo → push to origin; doesn't-own → `gh repo fork --clone=false` then `gh pr create --repo <upstream> --head <user>:<branch>`. Not authed correctly → stop and ask.
+- **Hand-off.** Report PR URL, file size, placement path, one-line README diff. End with a single-line `SHOWCASE.md` invite — never let it crowd the hero hand-off, never re-surface it.
+- **Local-only opt-out.** If no PR wanted, leave the file in `repo-visuals-work/<repo-name>/` and print the path; don't touch the target repo.
 
-Read the target repo to infer convention, then ask. Priority order when inferring:
-
-1. Existing `assets/` or `images/` → follow it.
-2. Existing `docs/` with images → place at `docs/hero.gif` (or `docs/<repo-name>-hero.gif` if multiple visuals).
-3. Existing `.github/` with images → `.github/hero.gif`.
-4. No visible convention → default to `assets/hero.gif` and create the dir.
-
-File name: default `hero.gif`. If the repo already has a `hero.gif` or keeps multiple visuals, prefer `<repo-name>-hero.gif` or `<repo-name>-demo.gif`.
-
-**Default to minimal — ship only what the repo needs.** The mandatory artifact is the **image file itself** (`hero.png` / `hero.gif`) placed at the inferred path, plus the single-line `![...]` embed in the target README. Nothing else by default.
-
-Do **not** preemptively commit `hero.html`, a `docs/images/README.md` maintenance doc, capture scripts, frames, palettes, or any supporting artifact. They enlarge the PR, dilute the diff, and in many repos are noise the maintainer will ask you to remove.
-
-Include supporting files **only when** one of these applies:
-
-- **The reviewer explicitly asks for them.** Common shape: a bot review flags "no design source — future maintainers can't update stats." Add the requested file as a follow-up commit on the same PR. (Real incident: `SonarSource/sonarqube#3427` — `hero.html` + maintenance README was requested by the review bot and directly turned a 2-item review into a merged PR.)
-- **The target repo has precedent.** If the existing `assets/` / `docs/images/` / `website/src/assets/img/` already contains design sources (SVGs, Figma exports, prior `hero.html`), match that convention on the way in.
-- **The user explicitly asks to ship source alongside.** Some users want the source in their own repos so they can re-render later; honor it when stated.
-
-If none of those apply, keep the PR to the image + one README line. Real incident: `htmlhint/HTMLHint#1863` shipped with `hero.html` + a maintenance `README.md` bundled in — the maintainer's feedback was literally *"GIF looks good — if you could kindly remove the HTML and MD I'll get it merged"*. Anything beyond the image risks being a scope imposition on someone else's repo.
-
-When you *do* need to commit source (one of the three triggers above):
-- `<image-dir>/hero.html` — the self-contained HTML source (just copy the scratch `index.html` verbatim).
-- `<image-dir>/README.md` — short doc with: (a) table of embedded stats + where each is verifiable, (b) re-render snippet (Puppeteer for static, Puppeteer + ffmpeg for GIF).
-
-### 5.2 README embed
-
-Read the README first. Ask:
-
-- **Top of README** (most common) → insert `![alt](path)` right after the H1 title and tagline.
-- **Replace an existing image** → identify it, confirm with user.
-- **Specific section** → user names where.
-
-**Alt text is informational, not decorative.** If the image contains text, stats, or a named concept that a sighted viewer takes away, the alt text must convey the same. `<repo-name> demo` is almost never enough.
-
-Pattern:
-- `![<project> — <one-line positioning>. <key stat 1>, <key stat 2>, <key stat 3>.](<path>)`
-- e.g. `![SonarQube — the standard for Clean Code. 30+ languages, 5,000+ analysis rules, 400K+ projects, 18 years of continuous inspection.](docs/images/hero.png)`
-
-If the image is genuinely decorative (a brand flourish, a pattern), use `alt=""` explicitly so assistive technology skips it rather than announcing the filename.
-
-Real incident: a review bot flagged `![SonarQube — the standard for Clean Code](…)` with "omits the stats visually presented in the image — screen-reader users will never see them." Fix was a one-line alt-text rewrite; flagging it up front avoids the round trip (`SonarSource/sonarqube#3427`).
-
-**Always use a relative path** — `![alt](assets/hero.gif)` or `<img src="assets/hero.gif">`, never `https://raw.githubusercontent.com/<owner>/<repo>/main/assets/hero.gif`. Even if the existing README uses absolute `raw.githubusercontent.com` URLs for its current images, do not mirror that style for your new hero. Reasons:
-
-- Absolute URLs pinned to `main` don't render in forks or in the PR preview — the image stays broken until the PR merges, which hurts review quality and often triggers reviewer objections (has happened: `htmlhint/HTMLHint#1861`).
-- Relative paths resolve correctly on GitHub web, npm package pages, and most README-rendering tools.
-- If the existing logo uses an absolute URL, that's legacy debt — it was shipped before the author realized the tradeoff. Don't propagate it.
-
-If the user explicitly asks for an absolute URL (e.g. embedding the hero on an external site that loads the README), use one — but the default for in-repo embeds is always relative.
-
-### 5.3 Commit
-
-Branch name default: `docs/add-hero-gif`. Override if the repo has a branch-name convention (check recent PRs or `CONTRIBUTING.md`).
-
-Commit message default: `docs: add animated hero gif to README`. Follow existing commit style (conventional commits, imperative, etc.).
-
-**Co-author footer: default OFF.** Only add a `Co-Authored-By: Claude …` footer if the user explicitly opts in for this repo.
-
-### 5.4 Push & PR
-
-Detect auth and repo ownership:
-
-- **User owns the repo** → push branch to `origin`, open PR via `gh pr create` against the default branch.
-- **User does NOT own the repo** → `gh repo fork --clone=false`, add the fork as a remote, push the branch there, then `gh pr create --repo <upstream> --head <user>:<branch>`.
-- **Not authed as the account the user wants to use** → stop and ask them to `gh auth login` as the right account. Never guess.
-
-Commit identity: if the user specifies a different git account for this repo, set `user.name` / `user.email` on the local repo config only, not globally. Use `<login>@users.noreply.github.com` if email is unknown.
-
-### 5.5 Hand-off
-
-After the PR opens, report:
-
-- PR URL
-- Final GIF size
-- Placement path in the repo
-- What was added/changed in the README (one-line diff summary)
-
-Then, as a final one-liner after the hand-off report, invite them to the showcase:
-
-> Optional: add this to [`SHOWCASE.md`](https://github.com/livlign/claude-skills/blob/main/plugins/repo-visuals/SHOWCASE.md).
-
-That's it. Do not expand on it unless the user asks. Do not block waiting for an answer. Do not re-surface it in later phases or future runs.
-
-### 5.6 Opt-out: local-only
-
-If the user doesn't want a PR, leave `hero.gif` at `repo-visuals-work/<repo-name>/hero.gif` and print the path. Don't modify the target repo.
-
-If the user sounded genuinely pleased (e.g. "this looks great", "love it"), end with the same one-liner as §5.5:
-
-> Optional: add this to [`SHOWCASE.md`](https://github.com/livlign/claude-skills/blob/main/plugins/repo-visuals/SHOWCASE.md) — the hero file itself can go in the PR, no upstream merge needed.
-
-Same rule — mention once, don't expand, don't block, don't re-surface.
-
-**Never let the showcase invite crowd the hero hand-off.** The hero is the user's deliverable. The invite is a footnote on the last line, never in its own phase, never a question the user has to answer.
+Read `craft/ship.md` end-to-end before running this phase the first time on a given repo.
 
 ---
 
@@ -604,156 +397,8 @@ Same rule — mention once, don't expand, don't block, don't re-surface.
 
 **Gate:** run this phase only when dev mode is active (user said "dev mode" this run, or `REPO_VISUALS_DEV=1`). In every other run — Manual, Semi-auto, Auto — stop after Phase 5. Do not ask user-rating questions, do not write run logs, do not mention this phase.
 
-Score the **final artifact**, not the process. In dev mode, always runs at the end.
+In dev mode, score the **final artifact** (not the process) across four rater types — User (3 rows), Claude (1 row), Code (auto via `scripts/evaluate.js`), AI (vision pass on extracted keyframes, blind to prior chat). Use the labeled 1–5 scale (`5 / Excellent` style). Skip User rows in Auto mode and flag accordingly.
 
-### 6.1 Criteria (four rater types)
+Write run logs to `./evaluations/runs/<YYYY-MM-DD>-<slug>.md` in the user's working directory (NOT the plugin cache — wiped on `/plugin update`). Curated rolling stats live in `./evaluations/index.md`, edited by the `repo-visuals-retro` meta-skill.
 
-Each criterion is rated by exactly one of: **User**, **Claude** (subjective, chat-blind), **Code** (deterministic script), or **AI** (Claude re-reads the final GIF/HTML with vision, blind to prior chat).
-
-**User-rated (3) — viewer-side truth.**
-
-| Criterion | What it measures | Signal for low score |
-|---|---|---|
-| **Hero moment delivery** | Does a cold viewer "get it" in ~10 seconds — both *what the repo is* and *why they'd reach for it*? | After one loop, viewer still can't state the repo's purpose or motivation |
-| **Visual impact** | Does the artifact make the viewer *want* to try the repo? | Looks fine but feels generic; no pull |
-| **Ship-worthiness** | Gut check: would the user paste this into the repo's README today, as-is? | User hesitates, wants "one more pass" |
-
-**Claude-rated (1) — repo-fit judgment.**
-
-| Criterion | What it measures | Signal for low score |
-|---|---|---|
-| **Repo fidelity** | Do on-screen text, terminology, and vibe feel like this specific repo's own voice? | Headlines read like generic marketing; terminology drifts from README |
-
-**Code-evaluated — `scripts/evaluate.js` runs automatically after export. Rows depend on format.**
-
-| Criterion | Applies to | Pass rule | Fail signal |
-|---|---|---|---|
-| **File size** | GIF + PNG | GIF: ≤ 10 MB target / ≤ 15 MB cap. PNG: ≤ 500 KB target / ≤ 1 MB cap. | Over target → 3; over cap → 1 |
-| **Dimensions** | GIF + PNG | Matches spec (e.g. 1200×675). PNG at 2× device pixel scale is also acceptable. | Wrong size → 1 |
-| **Loop duration** | GIF only | 15–25 s (hero default) | Outside band → 2 |
-| **Loop seam** | GIF only | First-frame vs last-frame pixel diff under ~2% | Visible jump on loop → 2 |
-| **Palette size** | GIF only | Palette ≤ 256, no visible banding on solid regions | Banding detected → 2 |
-
-**AI-evaluated (4) — Claude re-opens the exported artifact with vision, blind to prior chat. Prompt in §6.3.**
-
-| Criterion | What it measures | Signal for low score |
-|---|---|---|
-| **Legibility** | Every headline readable at native render size, no sub-pixel smear | Any headline unreadable → 2 |
-| **Scene clarity** | Each scene conveys one idea in its airtime | Two scenes blur together or one feels like filler → 3 |
-| **Voice match** | Headlines match tone and terminology of the repo's README | Drift from repo's own language → 2 |
-| **Intent delivery** | After one loop, can a cold viewer state *why* to reach for this repo? | Demos *what* without delivering *why* → 3 |
-
-### 6.2 Scale (1–5, labeled)
-
-| Score | Label | Meaning |
-|---|---|---|
-| 1 | Poor | Falls apart on the criterion |
-| 2 | Weak | Noticeably misses |
-| 3 | OK | Gets there, nothing more |
-| 4 | Strong | Clearly delivers |
-| 5 | Excellent | Best-in-class for this repo |
-
-Use the labels, not bare numbers. A "3" alone is noise; "3 / OK" is meaningful.
-
-### 6.3 Hand-off scorecard
-
-Assemble in four steps:
-
-1. **Run code eval** — `node scripts/evaluate.js <path-to-hero.gif-or-png>` → emits a JSON scorecard.
-2. **Run AI eval** — extract 4–6 keyframes from the GIF first (`ffmpeg -ss <t> -i hero.gif -update 1 -frames:v 1 frame.png` at evenly spaced times), then re-read each frame with vision, blind to prior chat. Use this fixed prompt — **anchored, evidence-required, and fed the repo's real inventory** so factual drift is catchable:
-
-   > You are evaluating a hero GIF for the repo `<owner/repo>`.
-   >
-   > **Repo ground truth (from §1.3 scan):**
-   > - README excerpt (first 40 lines): `<excerpt>`
-   > - Real inventory count: `<N>` (e.g. "30 tools", "12 commands", "N/A"). Specific names: `<list if applicable>`.
-   > - Stated hero moment (from §1.6 brief): `<one sentence>`
-   >
-   > **Rating protocol — read carefully:**
-   > - **Default every score to 3 / OK.** A 3 means "gets there, nothing more." Only move up with specific visual evidence from the frames; only move down with specific visual evidence of a problem.
-   > - **4 / Strong requires one concrete observation** from the frames that the criterion is clearly delivered (cite it in the note).
-   > - **5 / Excellent requires two concrete observations AND that you cannot name a realistic improvement.** If you can name one, cap at 4.
-   > - Do not grade on effort, intent, or potential. Grade only what is visible in the frames.
-   > - Compare on-screen claims against the repo ground truth. If the hero says *"all"* / *"every"* / shows a grid of N items but the repo has more, **cap Intent delivery at 2 / Weak** and note the undercount. An unverified claim is weaker than a verified one.
-   >
-   > **Rate each of Legibility, Scene clarity, Voice match, Intent delivery (1–5 Poor/Weak/OK/Strong/Excellent)** with a one-sentence justification citing specific frame evidence. Do not reference any prior conversation — judge only what you see in the frames and read in the ground truth above.
-   >
-   > **At the end, for any score ≥ 4, answer: "what specific change would push this to 5?" If you have an answer, lower the score by one.**
-
-3. **Fill Claude's repo-fidelity row** with a one-sentence justification.
-4. **Ask the user** for the 3 User rows via the `AskUserQuestion` tool — **in Manual and Semi-auto only**. In **Auto** mode, skip the User rows entirely; compute the overall average from Code + AI + Claude rows alone and flag in the run file that User ratings were not collected (so the evaluations index can weight it correctly).
-
-   Use four questions in one call: Hero moment delivery, Visual impact, Ship-worthiness, and a fourth free-text-via-Other for the one-line feedback. Structure each rating question with four labeled options matching the scale (omit 5 to fit the 4-option max; users can pick "Other" to enter 5/Excellent or a custom score). Example shape:
-
-   ```
-   AskUserQuestion({
-     questions: [
-       {
-         header: "Hero moment",
-         question: "Hero moment delivery — after one loop, would a cold viewer get *what* this repo is *and why* they'd reach for it?",
-         options: [
-           { label: "2 / Weak", description: "Noticeably misses" },
-           { label: "3 / OK", description: "Gets there, nothing more" },
-           { label: "4 / Strong", description: "Clearly delivers" },
-           { label: "1 / Poor", description: "Falls apart" }
-         ],
-         multiSelect: false
-       },
-       { header: "Visual impact", question: "Visual impact — does it make you want to try the repo?", options: [/* same 4 */], multiSelect: false },
-       { header: "Ship-worthiness", question: "Ship-worthiness — would you paste this into the README today, as-is?", options: [/* same 4 */], multiSelect: false },
-       {
-         header: "Feedback",
-         question: "One line of free-text feedback — the single most useful signal for next time.",
-         options: [
-           { label: "Nothing to add", description: "Skip this round" },
-           { label: "Add a comment", description: "Pick 'Other' to type your line" }
-         ],
-         multiSelect: false
-       }
-     ]
-   })
-   ```
-
-   The "Other" escape hatch covers 5 / Excellent and any other custom response. Capture the returned labels + any `annotations.notes` or "Other" text into the scorecard.
-
-Display the completed table, grouped by rater, then compute an overall simple average. Keep the full table in the run file.
-
-```
-| Criterion            | Rater  | Score        | Note                                                   |
-|----------------------|--------|--------------|--------------------------------------------------------|
-| Hero moment delivery | User   | (ask user)   | (ask user)                                             |
-| Visual impact        | User   | (ask user)   | (ask user)                                             |
-| Ship-worthiness      | User   | (ask user)   | (ask user)                                             |
-| Repo fidelity        | Claude | 4 / Strong   | Mirrors README phrasing; tagline could be tighter.     |
-| File size            | Code   | 5 / Excellent| 2.4 MB (10 MB target).                                 |
-| Dimensions           | Code   | 5 / Excellent| 1200×675 matches spec.                                 |
-| Loop duration        | Code   | 5 / Excellent| 20.1 s inside 15–25 s band.                            |
-| Loop seam            | Code   | 4 / Strong   | 1.3% first/last-frame diff (threshold 2%).             |
-| Palette size         | Code   | 5 / Excellent| 212 colors, no banding flagged.                        |
-| Legibility           | AI     | 4 / Strong   | All 7 headlines readable at native size.               |
-| Scene clarity        | AI     | 3 / OK       | Cron and JWT scenes blur into each other.              |
-| Voice match          | AI     | 4 / Strong   | Matches README's "one-off utility" framing.            |
-| Intent delivery      | AI     | 3 / OK       | Shows *what* each tool does, not *why* a user needs it.|
-```
-
-### 6.4 Evaluation log (two-tier)
-
-Write all evaluation files under `./evaluations/` in the **user's current working directory** — NOT the plugin cache, which is wiped on `/plugin update`. Create the directory if it doesn't exist on first dev-mode run.
-
-**Tier 1 — curated aggregate (committed):** `./evaluations/index.md`
-- Rolling stats per criterion across runs
-- Notable lessons learned
-- Recurring failure modes
-- Edited by the meta-skill (Phase 6.5) during retros
-
-**Tier 2 — raw per-run files (gitignored by default):** `./evaluations/runs/<YYYY-MM-DD>-<slug>.md`
-- The brief
-- The scorecard
-- User's free-text feedback
-- Path to the archived `hero.gif` / HTML if user opts to keep them
-
-User can opt in to commit specific runs (typically OSS repos they're happy to publicize).
-
-### 6.5 Meta-skill: `repo-visuals-retro`
-
-A separate skill (not part of `repo-visuals`'s runtime) for improving the skill itself. See `../repo-visuals-retro/SKILL.md` for its own design. Invoked on-demand when you have enough samples to spot patterns — not automatically per run.
+Full criteria tables, the fixed AI-eval prompt (with anchored ground-truth and the "default to 3, lower-by-one if you can name an improvement" protocol), the `AskUserQuestion` shape for User rows, and the scorecard template all live in `craft/evaluate.md`. Read it before running this phase.

@@ -1,6 +1,6 @@
 # Showcase
 
-Heroes made with `repo-visuals`.
+Heroes made with `repo-visuals`. Some are merged upstream; some live alongside their repos.
 
 To add yours, see [Contribute](#contribute).
 
