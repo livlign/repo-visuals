@@ -1,9 +1,9 @@
 {
   "name": "repo-visuals",
-  "version": "0.1.2",
-  "description": "Animated GIFs or static PNG hero visuals for GitHub repos.",
+  "version": "0.1.3",
+  "description": "Designs bespoke GitHub README hero visuals — animated GIF or static PNG — through a structured discovery dialog. Retina capture, scope-matched copy, optional upstream PR.",
   "author": { "name": "livlign" },
   "homepage": "https://github.com/livlign/claude-skills",
   "repository": "https://github.com/livlign/claude-skills",
-  "keywords": ["hero-gif", "readme", "visualization", "puppeteer"]
+  "keywords": ["readme", "readme-hero", "readme-banner", "hero-gif", "hero-image", "github", "open-source", "visualization", "puppeteer", "ffmpeg"]
 }

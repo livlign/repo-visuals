@@ -71,6 +71,15 @@ Commit message default: `docs: add animated hero gif to README`. Follow existing
 
 **PR description should read like craft notes, not a pitch.** Explain *why this hero* in the language of the brief — the format choice ("static, because the repo's identity is a surface, not a process"), the archetype ("Product-UI marketing — amplification-shape repo"), the inventory check ("40+ rules, scope-matched against the source"). Maintainers read PR descriptions; treat them as a respectful note about decisions, not a sales line. Never frame the description around the tool that produced the hero — the artifact is the deliverable, the tool is incidental.
 
+**Provenance disclosure footer — opt-in, end of description, neutral.** When the PR's deliverable is the hero itself, you may append a single-line provenance footer at the very end of the description, *after* the substantive content. Default phrasing: `> Generated with [repo-visuals](https://github.com/livlign/claude-skills) — happy to iterate on changes.` Rules:
+
+- **One line. At the end.** Never in the title, never in the opening, never repeated. If a maintainer strips it, that's fine; the work stands on its own.
+- **Skip it when the target's culture argues against.** Some maintainers ban AI-assisted submissions outright (real example: `travisvn/awesome-claude-skills`'s contributing.md closes such PRs without comment). When the target's `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, or recent merged PRs suggest tool-promo footers are unwelcome, skip the disclosure entirely.
+- **Skip it for non-hero PRs.** If the PR is a code fix, a docs typo, an issue follow-up — any work that isn't the hero artifact — provenance disclosure is irrelevant; don't add it.
+- **Never inside the hero artifact.** No watermark, no "made with" caption baked into the GIF/PNG. The artifact is the maintainer's once merged; provenance lives in the PR body, not the deliverable.
+
+The bar: the footer should read as transparent disclosure, like a "Co-authored-by" line, not as marketing. If reading it back feels at all like a pitch, rewrite or drop it.
+
 ---
 
 ## 5.4 Push & PR
