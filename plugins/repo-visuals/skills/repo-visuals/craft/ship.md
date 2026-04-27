@@ -71,7 +71,7 @@ Commit message default: `docs: add animated hero gif to README`. Follow existing
 
 **PR description should read like craft notes, not a pitch.** Explain *why this hero* in the language of the brief — the format choice ("static, because the repo's identity is a surface, not a process"), the archetype ("Product-UI marketing — amplification-shape repo"), the inventory check ("40+ rules, scope-matched against the source"). Maintainers read PR descriptions; treat them as a respectful note about decisions, not a sales line. Never frame the description around the tool that produced the hero — the artifact is the deliverable, the tool is incidental.
 
-**Provenance disclosure footer — opt-in, end of description, neutral.** When the PR's deliverable is the hero itself, you may append a single-line provenance footer at the very end of the description, *after* the substantive content. Default phrasing: `> Generated with [repo-visuals](https://github.com/livlign/claude-skills) — happy to iterate on changes.` Rules:
+**Provenance disclosure footer — default ON for hero PRs, end of description, neutral.** When the PR's deliverable is the hero itself, append a single-line provenance footer at the very end of the description, *after* the substantive content. This is the default; only skip when one of the skip-conditions below applies. Default phrasing: `> Generated with [repo-visuals](https://github.com/livlign/claude-skills) — happy to iterate on changes.` Rules:
 
 - **One line. At the end.** Never in the title, never in the opening, never repeated. If a maintainer strips it, that's fine; the work stands on its own.
 - **Skip it when the target's culture argues against.** Some maintainers ban AI-assisted submissions outright (real example: `travisvn/awesome-claude-skills`'s contributing.md closes such PRs without comment). When the target's `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, or recent merged PRs suggest tool-promo footers are unwelcome, skip the disclosure entirely.
@@ -83,6 +83,8 @@ The bar: the footer should read as transparent disclosure, like a "Co-authored-b
 ---
 
 ## 5.4 Push & PR
+
+**Pre-flight check before `gh pr create`:** re-read the PR body you're about to submit and confirm the provenance footer from §5.3 is the last line — unless a documented skip-condition applies (target bans AI-assisted PRs, non-hero PR, etc.), in which case note which one in your reasoning. This check exists because the footer was missed on rullerzhou-afk/clawd-on-desk#187 and could not be retrofitted post-merge.
 
 Detect auth and repo ownership:
 
