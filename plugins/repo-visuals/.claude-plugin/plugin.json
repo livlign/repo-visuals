@@ -1,6 +1,6 @@
 {
   "name": "repo-visuals",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Designs bespoke GitHub README hero visuals — animated GIF or static PNG — through a structured discovery dialog. Retina capture, scope-matched copy, optional upstream PR.",
   "author": { "name": "livlign" },
   "homepage": "https://github.com/livlign/claude-skills",
