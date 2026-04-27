@@ -29,6 +29,11 @@ To add yours, see [Contribute](#contribute).
 <a href="https://github.com/gui-cs/Terminal.Gui"><img src="https://raw.githubusercontent.com/gui-cs/Terminal.Gui/develop/docfx/images/hero.gif" alt="Terminal.Gui hero"></a>
 <sub><kbd>2026-04-25</kbd> &nbsp; <a href="https://github.com/gui-cs/Terminal.Gui"><b>gui-cs/Terminal.Gui</b></a> &nbsp; <em><a href="https://github.com/gui-cs/Terminal.Gui/pull/5058">#5058</a></em></sub>
 
+<br><br>
+
+<a href="https://github.com/rullerzhou-afk/clawd-on-desk"><img src="https://raw.githubusercontent.com/rullerzhou-afk/clawd-on-desk/main/assets/hero.gif" alt="clawd-on-desk hero"></a>
+<sub><kbd>2026-04-26</kbd> &nbsp; <a href="https://github.com/rullerzhou-afk/clawd-on-desk"><b>rullerzhou-afk/clawd-on-desk</b></a> &nbsp; <em><a href="https://github.com/rullerzhou-afk/clawd-on-desk/pull/187">#187</a></em></sub>
+
 </td>
 </tr>
 </table>
