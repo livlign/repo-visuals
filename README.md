@@ -1,5 +1,7 @@
 # livlign skills
 
+![livlign/claude-skills — bespoke heroes, honest audits. Two Claude Code plugins for working with GitHub repos: repo-visuals designs README hero visuals, repo-doctor audits READMEs and prescribes fixes.](./assets/hero.gif)
+
 Claude Code plugins for working with GitHub repos — designing README heroes, auditing READMEs.
 
 ```
