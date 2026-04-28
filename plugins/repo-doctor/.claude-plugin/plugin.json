@@ -1,0 +1,9 @@
+{
+  "name": "repo-doctor",
+  "version": "0.1.0",
+  "description": "Diagnostic skills for GitHub repos. Currently ships readme-doctor — a structured review of a repo's README against best-practice patterns (hero presence, install-to-first-success length, audience match, drift signals), output as a prioritized punch list.",
+  "author": { "name": "livlign" },
+  "homepage": "https://github.com/livlign/claude-skills",
+  "repository": "https://github.com/livlign/claude-skills",
+  "keywords": ["readme", "readme-review", "readme-audit", "documentation", "github", "open-source", "maintainer-tools"]
+}

@@ -8,6 +8,13 @@
       "description": "Designs bespoke GitHub README hero visuals — animated GIF or static PNG — through a structured discovery dialog. Retina capture, scope-matched copy, optional upstream PR.",
       "version": "0.1.4",
       "keywords": ["readme", "readme-hero", "readme-banner", "hero-gif", "hero-image", "github", "open-source", "visualization", "puppeteer", "ffmpeg"]
+    },
+    {
+      "name": "repo-doctor",
+      "source": "./plugins/repo-doctor",
+      "description": "Audits a GitHub repo's README against best-practice patterns and produces a prioritized punch list (P0/P1/P2) of fixes — hero presence, install-to-first-success length, audience-jargon match, drift signals. Read-only diagnostic by default.",
+      "version": "0.1.0",
+      "keywords": ["readme", "readme-review", "readme-audit", "documentation", "github", "open-source", "maintainer-tools"]
     }
   ]
 }

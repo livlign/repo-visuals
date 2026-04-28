@@ -55,3 +55,4 @@ A Claude Code plugin that designs README hero visuals — animated GIF or static
 | Plugin | Install | What it does |
 |---|---|---|
 | [repo-visuals](./plugins/repo-visuals) | `/plugin install repo-visuals@livlign` | Hero visuals for GitHub repos, with opt-in dev mode for scored evaluations. |
+| [repo-doctor](./plugins/repo-doctor) | `/plugin install repo-doctor@livlign` | Audit a repo's README against best-practice patterns and get a prioritized punch list of fixes. Read-only diagnostic. |
