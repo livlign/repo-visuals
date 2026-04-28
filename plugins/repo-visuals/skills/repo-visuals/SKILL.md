@@ -11,8 +11,8 @@ The skill's quality comes from the **discovery dialog**, not from templates. Eve
 
 ## Phases
 
-1. **Discovery** — pick operating mode (Auto / Semi-auto / Manual, §1.1a), scan the repo, summarize findings, recommend a format (animated vs static), ask about vibe/audience/hero moment, propose 2–3 scenarios, converge on a brief. The mode controls *how many* of these the user answers vs. Claude decides silently — it does not skip any of the craft checks.
-2. **Build** — write HTML/CSS/JS for the chosen scenario. For static, design one decisive frame; for animated, a loop. No storyboard step.
+1. **Discovery** — pick operating mode (Auto / Semi-auto / Manual, §1.1a), scan the repo, summarize findings, recommend a format (animated vs static), ask about vibe/audience/hero moment, propose 2–3 scenarios, converge on a brief. Then **Gate A — brief vs README** (§1.8): narrow repo-context check on the brief before any pixels exist. The mode controls *how many* of these the user answers vs. Claude decides silently — it does not skip any of the craft checks.
+2. **Build** — write HTML/CSS/JS for the chosen scenario. For static, design one decisive frame; for animated, a loop. No storyboard step. Then **Gate B — rendered HTML vs README** (§2.6): sample keyframes from the HTML, check what's on screen against the repo's own positioning, allow 1 auto-iteration if it fails. Both gates are deliberately narrow — only repo-context fidelity, not aesthetics or craft.
 3. **Preview & iterate** — open the HTML in the user's default browser, iterate in text until the user says ship.
 4. **Export** — animated → Puppeteer screencast + ffmpeg palette pipeline to GIF. Static → Puppeteer `page.screenshot` to PNG (with `deviceScaleFactor: 2` for retina crispness).
 5. **Output** — place the hero in the target repo; optionally open a PR that embeds it in the README.
@@ -110,7 +110,8 @@ Ask these as a structured batch, with suggested defaults based on what the scan 
 4. **Vibe** — minimal, playful, technical, cinematic, retro-terminal, brutalist, polished-SaaS
 5. **Energy** — calm & meditative / steady / frenetic & showy
 6. **Hero moment** — the single thing a viewer should take away
-7. **Hard constraints** — brand colors, existing fonts, imagery to include/avoid, duration cap
+7. **What NOT to imply** — claims, vibes, or audiences this hero must *avoid* suggesting. A hero can look polished and still say the wrong thing (e.g. implying enterprise-readiness for a hobby project, or "fast" for a tool whose pitch is correctness). Capture explicit don'ts so Gate A (§1.8) has something to check against. Examples: *"don't imply this is production-ready,"* *"don't lead with speed — the pitch is correctness,"* *"avoid AI/ML aesthetics — this is a UI library."*
+8. **Hard constraints** — brand colors, existing fonts, imagery to include/avoid, duration cap
 
 ### 1.4a Probing when the user doesn't know
 
@@ -174,6 +175,7 @@ Move to the build phase when all six are settled:
 - [ ] Hero moment named in one sentence
 - [ ] Audience named
 - [ ] Hard constraints captured (or confirmed "none")
+- [ ] "What NOT to imply" list captured (or confirmed "none") — used by Gate A (§1.8)
 - [ ] Output format chosen (animated GIF / static PNG / HTML only)
 - [ ] Placement agreed (README / website / social / slide / other)
 - [ ] Duration chosen — animated only (typical: 15–25s loop; default 20s); skip for static
@@ -199,6 +201,41 @@ Write the brief back to the user in a compact block. Wait for **"go"** before wr
 **Craft rules scale with whatever dimensions are chosen** — the font-size floors, bottom-clearance minimums, and column-density rules later in this document are written around 1200×675 but are expressed as ratios (% of stage height, px relative to canvas width) so they port. When you deviate, recompute: e.g. at 1200×400 the body-text floor is still ~2.5% of stage height × retina headroom, not a fixed 17px.
 
 **The capture pipeline already supports arbitrary dimensions** — `scripts/screenshot.js` and `capture.js` both take `--width` and `--height` flags. Pass whatever the brief locked in; don't hardcode 1200×675 in export commands.
+
+### 1.8 Gate A — brief vs README (repo-context check, pre-render)
+
+Run after the brief block is written, before saying "go" (Auto: silently; Semi-auto: silently, surface only if it triggers a revision; Manual: visible note the user can override).
+
+**Scope of this gate is deliberately narrow: only repo-context fidelity.** A hero can look polished and still say the wrong thing about *this specific repo* — that's what Gate A catches. Aesthetic judgments, AI-design clichés, technical compliance, "is the design generic" — all out of scope. Those belong to taste and craft rules elsewhere in this document, not to a gate that triggers a revision. Keeping the scope narrow is what prevents the gate from drifting into "optimize for pretty" — the failure mode the original Reddit feedback warned about.
+
+**Inputs** (assemble from §1.3 scan + the locked brief):
+
+- README first 40 lines (verbatim).
+- Real inventory count and any specific names from §1.3.
+- Stated hero moment (one sentence).
+- Audience.
+- "What NOT to imply" list (§1.4 question 7).
+
+**Critique prompt:**
+
+> You are critiquing a draft creative brief for the repo `<owner/repo>`'s hero visual *before any HTML exists*. Your only job is to check whether the brief faithfully represents this repo's own positioning — not to judge aesthetics, not to suggest design improvements.
+>
+> **Brief:** `<paste the locked brief>`
+>
+> **Repo ground truth:** `<README excerpt, inventory count, stated hero moment, audience, "what NOT to imply">`
+>
+> Answer concretely (cite the brief and the README):
+> 1. **Voice match.** Does the brief's on-screen copy use this repo's own README phrasing and terminology, or does it drift into generic marketing voice?
+> 2. **Scope honesty.** If the brief implies "all" / "every" / a grid, does it match the real inventory count? If not, is it explicitly framed as a sample?
+> 3. **What it implies that it shouldn't.** Walk the "what NOT to imply" list and the README's actual positioning — does the brief accidentally suggest something the repo isn't claiming?
+>
+> For each, output: `PASS` (with a one-line reason), or `FAIL` (with a one-line reason and a one-line concrete fix). Do not comment on visual style, color, layout, or design quality — those are not what this gate checks.
+
+**What to do with the result:**
+
+- **All PASS** → proceed to Phase 2.
+- **Any FAIL** → revise the brief to apply the fixes, re-show the brief block (don't re-run Gate A — one pass is enough). In Manual mode, surface the FAILs to the user and let them decide whether to apply the fix.
+- **Auto mode + FAIL** → apply fixes silently, note them in a one-line "tightened brief: [what changed]" before proceeding.
 
 ---
 
@@ -275,6 +312,54 @@ First preview as soon as:
 - No console errors
 
 Don't polish before first preview. User's reaction on overall shape is more valuable than Claude's local polish loop.
+
+### 2.6 Gate B — rendered HTML vs README (repo-context check, pre-export)
+
+Once `index.html` is ready and §2.5's stop conditions are met, run a **vision-based check on the rendered HTML before any GIF/PNG export.** Same narrow scope as Gate A — only repo-context fidelity (does what's on screen match what the README says about this repo?). Aesthetic, technical, and craft compliance are explicitly out of scope; those are caught by taste and the dev-mode scorecard, not by an iteration-triggering gate.
+
+This catches the brief→pixels gap: the right brief can still produce text that drifted from README phrasing, a scene that undercounts the repo's real inventory, or copy that quietly implies something the "what NOT to imply" list ruled out.
+
+**Why on HTML, not the exported artifact:** an export cycle is expensive (GIF: capture + ffmpeg ~30s+, PNG: Puppeteer ~3s but still wasted if the critique fails). Running the check on Puppeteer screenshots of the HTML keeps it in the same cheap loop as build, so an iteration is "edit HTML, re-screenshot, re-critique" — no encoder in the inner loop.
+
+**Mode interaction:**
+
+| Mode | Gate B behavior |
+|---|---|
+| **Auto** | Run silently. If FAIL, apply 1 auto-iteration (edit HTML, re-screenshot, re-critique). After 1 retry, proceed regardless and note remaining issues in the hand-off. |
+| **Semi-auto** | Run once silently before showing the artifact. If FAIL, apply 1 auto-iteration before the human preview. Surface a one-line "Gate B caught and fixed: [X]" so the user knows. |
+| **Manual** | Skip — the human is the critic. Optional: offer to run it as a "second opinion" if the user asks. |
+
+**Capture step** (no ffmpeg):
+
+- Animated: call `scripts/screenshot.js` 4–5 times at evenly-spaced `--seek` values across the loop duration (the script uses `window.seekTo(t)` if exposed by the HTML; otherwise design the HTML to expose it — see §2.3 timeline helpers). Output to `repo-visuals-work/<repo>/critique-frames/`.
+- Static: a single `scripts/screenshot.js` call at `deviceScaleFactor: 2`.
+
+**Critique prompt** — narrowed version of §6.3, repo-context only:
+
+> You are checking the rendered hero for `<owner/repo>` against the repo's own positioning. Only judge whether what's on screen matches the README — not whether it looks good, not whether the design is original, not whether type is well-set. Aesthetic and craft judgments are out of scope here.
+>
+> **Repo ground truth:** `<README first 40 lines, real inventory count, stated hero moment, audience, "what NOT to imply" list>`
+>
+> For each frame, rate (1–5, default 3, evidence required to move):
+> - **Voice match.** Does on-screen text use README phrasing and terminology, or drift to generic marketing voice?
+> - **Intent delivery.** Does the hero deliver the *why* a viewer would reach for this repo, grounded in what the README claims — not just *what* the repo does?
+>
+> Also flag binary issues (PASS/FAIL):
+> - **Scope undercount.** Does any "all" / "every" / grid claim match the real inventory? If not, is it explicitly framed as a sample?
+> - **Don't-imply violations.** Does anything on screen suggest something from the "what NOT to imply" list?
+>
+> Cite specific frames in every observation. Do not comment on color, layout, animation polish, or design taste.
+
+**Pass/fail rule (narrowed):**
+
+- **Pass** = Voice match ≥ 3, Intent delivery ≥ 3, no scope undercount, no don't-imply violation.
+- **Fail** = any of: Voice match ≤ 2, Intent delivery ≤ 2, scope undercount, don't-imply violation.
+
+Aesthetic / legibility / loop-duration / palette concerns are **not** Gate B's job. They surface in the dev-mode scorecard (§6) and as user-visible feedback in Phase 3, but they don't trigger the retry. This keeps Gate B from manufacturing busywork on artifacts that are visually fine but technically borderline (real incident: the original 28s clawd-on-desk hero would have triggered a Code-row FAIL on loop duration, the resulting fix was perceptually invisible — the gate did nothing useful).
+
+**On fail, exactly one retry:** identify the most-cited concrete repo-context problem from the critique notes (not all of them — that invites whiplash). Edit the HTML to fix that one thing. Re-screenshot. Re-critique. After the retry, proceed to Phase 3 (Semi-auto) or Phase 4 (Auto) regardless of the second result — log remaining issues for the user.
+
+**Why one retry, not many:** the critic and the generator are the same model. More than one auto-iteration risks sycophantic loops or whiplash between two equally-flawed designs. One retry forces a single decisive fix and stops.
 
 ---
 
