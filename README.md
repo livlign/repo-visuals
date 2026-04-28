@@ -16,7 +16,32 @@ A small marketplace of Claude Code plugins I ship.
 
 A Claude Code plugin that designs README hero visuals — animated GIF or static PNG — for GitHub repositories. The skill scans the target repo, recommends a format that fits its identity, proposes scenarios, designs a bespoke HTML stage, previews it in your browser, and exports a retina-quality artifact — then optionally opens the upstream PR.
 
-A few have been merged. See the [showcase](./plugins/repo-visuals/SHOWCASE.md), or jump to [`plugins/repo-visuals`](./plugins/repo-visuals) for the full skill.
+### Recent heroes
+
+<table>
+<tr>
+<td width="50%" valign="top">
+  <a href="https://github.com/htmlhint/HTMLHint"><img src="https://raw.githubusercontent.com/htmlhint/HTMLHint/main/website/src/assets/img/hero.gif?v=retina" alt="HTMLHint hero"></a>
+  <sub><a href="https://github.com/htmlhint/HTMLHint"><b>htmlhint/HTMLHint</b></a> · merged <a href="https://github.com/htmlhint/HTMLHint/pull/1863">#1863</a></sub>
+</td>
+<td width="50%" valign="top">
+  <a href="https://github.com/gui-cs/Terminal.Gui"><img src="https://raw.githubusercontent.com/gui-cs/Terminal.Gui/develop/docfx/images/hero.gif" alt="Terminal.Gui hero"></a>
+  <sub><a href="https://github.com/gui-cs/Terminal.Gui"><b>gui-cs/Terminal.Gui</b></a> · merged <a href="https://github.com/gui-cs/Terminal.Gui/pull/5058">#5058</a></sub>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+  <a href="https://github.com/rullerzhou-afk/clawd-on-desk"><img src="https://raw.githubusercontent.com/rullerzhou-afk/clawd-on-desk/main/assets/hero.gif" alt="clawd-on-desk hero"></a>
+  <sub><a href="https://github.com/rullerzhou-afk/clawd-on-desk"><b>rullerzhou-afk/clawd-on-desk</b></a> · merged <a href="https://github.com/rullerzhou-afk/clawd-on-desk/pull/187">#187</a></sub>
+</td>
+<td width="50%" valign="top">
+  <a href="https://github.com/affaan-m/everything-claude-code"><img src="https://raw.githubusercontent.com/affaan-m/everything-claude-code/main/assets/hero.png" alt="everything-claude-code hero"></a>
+  <sub><a href="https://github.com/affaan-m/everything-claude-code"><b>affaan-m/everything-claude-code</b></a></sub>
+</td>
+</tr>
+</table>
+
+[Full showcase →](./plugins/repo-visuals/SHOWCASE.md) · [Plugin source →](./plugins/repo-visuals)
 
 ### Why it's different
 
