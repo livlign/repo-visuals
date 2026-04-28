@@ -89,8 +89,8 @@ Audits a README the way a senior maintainer would — does the "what is this" se
 
 ## Contributing
 
-- **Hero submissions** for the showcase → see [SHOWCASE.md](./plugins/repo-visuals/SHOWCASE.md).
-- **Skill bugs / feature ideas** → open an issue.
-- **PRs to skill internals** → open an issue first to align on direction.
+Easiest entry points: submit a hero to the [showcase](./plugins/repo-visuals/SHOWCASE.md), report a real failure as an issue, or pick something from the [wishlist](./CONTRIBUTING.md#3-pick-something-from-the-wishlist).
+
+Full guide → [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 Personal project, evolving fast — expect breaking changes pre-1.0.
