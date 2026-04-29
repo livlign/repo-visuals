@@ -32,6 +32,6 @@
   },
   "homepage": "https://github.com/livlign/claude-skills#readme",
   "dependencies": {
-    "puppeteer": "^24.42.0"
+    "puppeteer": "24.42.0"
   }
 }

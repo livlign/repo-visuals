@@ -1,6 +1,6 @@
 ---
 name: repo-visuals
-description: Create hero visuals — animated GIF or static PNG — for GitHub repositories. Runs a structured discovery conversation (scan repo → recommend format → propose creative scenarios → agree on a brief), then designs bespoke HTML, previews it in the browser, and exports.
+description: Create hero visuals — animated GIF or static PNG — for GitHub repositories. Runs a structured discovery conversation (scan repo → recommend format → propose creative scenarios → agree on a brief), then designs bespoke HTML, previews it in the browser, and exports. Use when the user asks for a README hero, repo banner, README image, GitHub header, social preview card, repo demo GIF, hero image, OG image, project screenshot, repository showcase, or any "image at the top of the README".
 ---
 
 # repo-visuals
@@ -35,31 +35,7 @@ Before anything else — before the scan summary, before any direction questions
 
 > Note: this "operating mode" is a skill-level concept about how many questions the skill asks. It is distinct from the Claude Code harness's own auto-mode; the two do not replace each other.
 
-Question shape:
-
-```
-AskUserQuestion({
-  questions: [{
-    header: "Run mode",
-    question: "How involved do you want to be in this run? This affects how many decisions I ask you to make before we ship an artifact.",
-    multiSelect: false,
-    options: [
-      {
-        label: "Semi-auto (Recommended)",
-        description: "I decide vibe, audience, scenario, dimensions, copy. You decide: output format (GIF/PNG/HTML) and one preview-and-iterate review before export. ~2 decisions. Pros: fast, keeps production-grade gate, keeps your taste in the loop on the things that matter most. Cons: you miss input on smaller creative calls."
-      },
-      {
-        label: "Manual",
-        description: "I ask you at every decision point — scenario pick, vibe confirmation, brief approval, preview iteration rounds, export ship-intent. I still make suggestions and recommendations at each step. Pros: max control, highest ceiling on quality. Cons: slow — 8–12 back-and-forths before an artifact."
-      },
-      {
-        label: "Auto",
-        description: "I make every decision and go straight to the exported artifact (GIF or PNG, my call). Pros: hands-off, 0 decisions, fastest path to a shippable draft. Cons: lower quality ceiling, more risk of missing your taste or the repo's real scope; expect to redirect after seeing the result."
-      }
-    ]
-  }]
-})
-```
+Verbatim `AskUserQuestion` shape (Run mode header, three labeled options with pros/cons): `craft/snippets/operating-mode-question.md`. Paste as-is; option text is load-bearing.
 
 Rules that apply to **every** mode regardless of choice (craft non-negotiables):
 
