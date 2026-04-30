@@ -6,7 +6,39 @@ A Claude Code plugin for designing **bespoke GitHub README hero visuals** — **
 
 The plugin scans the target repo, recommends a format that fits its identity (terminal demo, product UI, brand-first wordmark, banner, diagram-as-hero), generates bespoke HTML through a structured discovery dialog, previews it in your browser, and exports a retina-quality artifact ready to drop into the README.
 
-See [`SHOWCASE.md`](./SHOWCASE.md) for heroes that have landed in their target repos.
+### Heroes shipped with this skill
+
+<table>
+<tr>
+<td width="50%" valign="top">
+  <a href="https://github.com/htmlhint/HTMLHint"><img src="https://raw.githubusercontent.com/htmlhint/HTMLHint/main/website/src/assets/img/hero.gif?v=retina" alt="HTMLHint hero"></a>
+  <sub><a href="https://github.com/htmlhint/HTMLHint"><b>htmlhint/HTMLHint</b></a> · merged <a href="https://github.com/htmlhint/HTMLHint/pull/1863">#1863</a></sub>
+</td>
+<td width="50%" valign="top">
+  <a href="https://github.com/gui-cs/Terminal.Gui"><img src="https://raw.githubusercontent.com/gui-cs/Terminal.Gui/develop/docfx/images/hero.gif" alt="Terminal.Gui hero"></a>
+  <sub><a href="https://github.com/gui-cs/Terminal.Gui"><b>gui-cs/Terminal.Gui</b></a> · merged <a href="https://github.com/gui-cs/Terminal.Gui/pull/5058">#5058</a></sub>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+  <a href="https://github.com/rullerzhou-afk/clawd-on-desk"><img src="https://raw.githubusercontent.com/rullerzhou-afk/clawd-on-desk/main/assets/hero.gif" alt="clawd-on-desk hero"></a>
+  <sub><a href="https://github.com/rullerzhou-afk/clawd-on-desk"><b>rullerzhou-afk/clawd-on-desk</b></a> · merged <a href="https://github.com/rullerzhou-afk/clawd-on-desk/pull/187">#187</a></sub>
+</td>
+<td width="50%" valign="top">
+  <a href="https://github.com/affaan-m/everything-claude-code"><img src="https://raw.githubusercontent.com/affaan-m/everything-claude-code/main/assets/hero.png" alt="everything-claude-code hero"></a>
+  <sub><a href="https://github.com/affaan-m/everything-claude-code"><b>affaan-m/everything-claude-code</b></a></sub>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+  <a href="https://github.com/kunwar-shah/claudex"><img src="https://raw.githubusercontent.com/kunwar-shah/claudex/main/screenshots/hero.gif" alt="claudex hero"></a>
+  <sub><a href="https://github.com/kunwar-shah/claudex"><b>kunwar-shah/claudex</b></a> · merged <a href="https://github.com/kunwar-shah/claudex/pull/39">#39</a></sub>
+</td>
+<td width="50%" valign="top"></td>
+</tr>
+</table>
+
+[Full showcase →](./SHOWCASE.md)
 
 ## Install
 
