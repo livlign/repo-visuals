@@ -31,6 +31,13 @@ Claude Code plugins for working with GitHub repos — designing README heroes, a
   <sub><a href="https://github.com/affaan-m/everything-claude-code"><b>affaan-m/everything-claude-code</b></a></sub>
 </td>
 </tr>
+<tr>
+<td width="50%" valign="top">
+  <a href="https://github.com/kunwar-shah/claudex"><img src="https://raw.githubusercontent.com/kunwar-shah/claudex/main/screenshots/hero.gif" alt="claudex hero"></a>
+  <sub><a href="https://github.com/kunwar-shah/claudex"><b>kunwar-shah/claudex</b></a> · merged <a href="https://github.com/kunwar-shah/claudex/pull/39">#39</a></sub>
+</td>
+<td width="50%" valign="top"></td>
+</tr>
 </table>
 
 [Full showcase →](./plugins/repo-visuals/SHOWCASE.md)

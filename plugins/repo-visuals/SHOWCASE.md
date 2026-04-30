@@ -18,6 +18,11 @@ To add yours, see [Contribute](#contribute).
 <a href="https://github.com/emtyty/ast-graph"><img src="https://raw.githubusercontent.com/emtyty/ast-graph/master/docs/ast-graph-demo.gif" alt="ast-graph hero"></a>
 <sub><kbd>2026-04-20</kbd> &nbsp; <a href="https://github.com/emtyty/ast-graph"><b>emtyty/ast-graph</b></a></sub>
 
+<br><br>
+
+<a href="https://github.com/kunwar-shah/claudex"><img src="https://raw.githubusercontent.com/kunwar-shah/claudex/main/screenshots/hero.gif" alt="claudex hero"></a>
+<sub><kbd>2026-04-30</kbd> &nbsp; <a href="https://github.com/kunwar-shah/claudex"><b>kunwar-shah/claudex</b></a> &nbsp; <em><a href="https://github.com/kunwar-shah/claudex/pull/39">#39</a></em></sub>
+
 </td>
 <td width="50%" valign="top">
 
@@ -27,7 +32,7 @@ To add yours, see [Contribute](#contribute).
 <br><br>
 
 <a href="https://github.com/gui-cs/Terminal.Gui"><img src="https://raw.githubusercontent.com/gui-cs/Terminal.Gui/develop/docfx/images/hero.gif" alt="Terminal.Gui hero"></a>
-<sub><kbd>2026-04-25</kbd> &nbsp; <a href="https://github.com/gui-cs/Terminal.Gui"><b>gui-cs/Terminal.Gui</b></a> &nbsp; <em><a href="https://github.com/gui-cs/Terminal.Gui/pull/5058">#5058</a></em></sub>
+<sub><kbd>2026-04-29</kbd> &nbsp; <a href="https://github.com/gui-cs/Terminal.Gui"><b>gui-cs/Terminal.Gui</b></a> &nbsp; <em><a href="https://github.com/gui-cs/Terminal.Gui/pull/5058">#5058</a> · follow-up <a href="https://github.com/gui-cs/Terminal.Gui/pull/5121">#5121</a></em></sub>
 
 <br><br>
 
