@@ -71,6 +71,22 @@ The plugin install does **not** install these — you need them on your system b
 
 Claude asks which operating mode to use (see below), runs discovery → build → preview → export → output, and stops. No evaluation is collected.
 
+A run feels like this:
+
+```
+You:    Generate a hero GIF for this repo: https://github.com/owner/name
+Claude: [scans repo] Inferred CLI tool — `bin/` entry, README opens with a $ npx line.
+        Recommending an animated terminal demo at 1200×675. Which mode — Auto / Semi / Manual?
+You:    Semi
+Claude: [proposes 3 scenarios] Pick one, or describe a different angle.
+You:    #2, but make the final frame land on the success state for longer.
+Claude: [builds HTML, opens preview in browser] Looks right? Any copy/timing tweaks?
+You:    ship it
+Claude: → ./hero.gif (1200×675, 4.2s, 1.8 MB)
+```
+
+Final artifact lands in your current working directory. In dev mode, an evaluation row is appended to `./evaluations/runs/<date>-<slug>.md`.
+
 ### Dev run (with scorecard)
 
 > Generate a hero GIF for this repo in dev mode: https://github.com/owner/name
