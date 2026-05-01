@@ -41,6 +41,8 @@ Rules that apply to **every** mode regardless of choice (craft non-negotiables):
 
 - **§1.3 inventory count is always collected.** Auto/semi don't skip it.
 - **§4.0 scope-match rule is always enforced.** If the hero says "all" or shows a grid, on-screen reality must match the real inventory — regardless of mode.
+- **§1.8 Gate A and §1.8b Gate B are always run on the brief.** Gate A covers repo-fidelity, Gate B covers aesthetic-identity match and the wow check. Auto/semi don't skip them before writing HTML.
+- **§3.0a / §4.4a render self-critique is always run.** Every rendered HTML preview screenshot and every exported PNG/GIF gets read and bullet-critiqued before being shown to the user. The user is not the QA pass.
 - **Any mode can be upgraded mid-run.** If Auto drifts, user can say "stop, switch to semi" and we resume from the nearest decision point. Do not silently re-ask everything; pick up at the next unanswered question.
 
 After the user picks a mode, commit it to memory for the run (e.g. "Mode: Semi-auto") and reference it when deciding whether to ask or decide silently at each subsequent step. In Auto and Semi-auto, make decisions with a brief one-line note ("going with the Product-UI marketing archetype per §1.4c — amplication-shape repo") so the user can redirect if they disagree.
@@ -159,6 +161,7 @@ Move to the build phase when all six are settled:
 - [ ] Real inventory count captured from §1.3 scan (if the repo has a countable collection)
 - [ ] Operating mode recorded from §1.1a (Auto / Semi-auto / Manual)
 - [ ] Paddings are symmetric — top = bottom, left = right — unless a deliberate asymmetry is named in the brief (§2.4 symmetry rule)
+- [ ] Gate A (§1.8) and Gate B (§1.8b) both PASS — repo-fidelity *and* aesthetic-identity + wow have been checked
 
 Write the brief back to the user in a compact block. Wait for **"go"** before writing any HTML — *unless* the mode is **Auto**, in which case proceed directly to Phase 2 with a brief summary line and no wait. In **Semi-auto**, show the brief but proceed after a brief pause unless the user interjects. In **Manual**, wait explicitly for "go".
 
@@ -212,6 +215,50 @@ Run after the brief block is written, before saying "go" (Auto: silently; Semi-a
 - **All PASS** → proceed to Phase 2.
 - **Any FAIL** → revise the brief to apply the fixes, re-show the brief block (don't re-run Gate A — one pass is enough). In Manual mode, surface the FAILs to the user and let them decide whether to apply the fix.
 - **Auto mode + FAIL** → apply fixes silently, note them in a one-line "tightened brief: [what changed]" before proceeding.
+
+### 1.8b Gate B — aesthetic identity & wow (pre-render)
+
+Run immediately after Gate A passes, on the same locked brief, before saying "go" (Auto: silently; Semi-auto: silently, surface only if it triggers a revision; Manual: visible note the user can override).
+
+**Scope of this gate is deliberately narrow: only aesthetic identity match and wow.** Gate A already verifies that the brief says the right *facts* about the repo. Gate B verifies that the brief picks the right *visual language* for the repo and that the composition has a reason to exist. Anything past those two questions — pixel-level polish, type kerning, exact palette values — belongs to render-time critique (§3.0a / §4.4a), not here.
+
+The two failure modes Gate B catches:
+
+1. **Author's-personal-aesthetic ≠ product's-identity.** A repo by a designer has *two* visual languages around it — the maintainer's personal blog/portfolio aesthetic, and the *product*'s own identity. Heroes belong to the product. Defaulting to the maintainer's personal palette is a real, recurring failure.
+   *Example incident:* a hero for `kepano/obsidian-skills` was first drafted in Flexoki cream — kepano's *personal blog* palette. The product is **Obsidian**, whose iconic visual is the dark-purple graph view. The cream draft drew "no wow, doesn't feel like the repo." Fix was to switch to dark + graph-view aesthetic.
+
+2. **No wow anchor.** A brief like "tasteful grid of cards in a muted palette" is generic — there is no specific compositional move that would make a viewer stop scrolling. The brief needs to name *one* concrete visual move that anchors the hero (the product's iconic visual, an unexpected layout, a vivid contrast, a recognizable metaphor).
+
+**Inputs** (assemble from §1.3 scan + the locked brief):
+
+- Author identity *vs* product identity. Are they the same? (e.g., a solo dev's CLI = same; a designer's library for someone else's product = different — use the *product*'s identity.)
+- Existing visuals in `assets/` / app screenshots / docs.site — what visual language does the *product* itself use?
+- Stated vibe and palette in the brief.
+- Stated hero moment and chosen scenario.
+
+**Critique prompt:**
+
+> You are critiquing a draft creative brief for the repo `<owner/repo>`'s hero visual *before any HTML exists*. Your job is to check two things only: aesthetic identity match, and wow anchor. Do not re-check facts, scope, or repo-fidelity — Gate A already did that.
+>
+> **Brief:** `<paste the locked brief>`
+>
+> **Identity context:**
+> - Repo author / maintainer: `<name>`
+> - Author's personal aesthetic (if known from scan — blog, portfolio, prior work): `<one line>`
+> - The *product* this repo is for or about: `<name>`
+> - Product's iconic visual identity (from app screenshots, docs site, brand): `<one line>`
+> - Existing in-repo visuals: `<list or "none">`
+>
+> Answer concretely:
+> 1. **Identity match.** Does the brief's chosen vibe/palette/composition match *the product's* visual identity, or has it drifted into the author's personal aesthetic (or generic AI-design defaults)? If the author and product are the same entity, this question collapses to "does the brief match the maintainer's identity."
+> 2. **Wow anchor.** Name the *one specific compositional move* in the brief that would make a viewer stop scrolling. If you can't name one in a single sentence, the brief is generic — flag it.
+>
+> For each, output: `PASS` (with a one-line reason), or `FAIL` (with a one-line reason and a one-line concrete fix — e.g., "swap Flexoki cream for Obsidian's dark + purple graph-view aesthetic," or "anchor on the product's signature graph visualization on the right half of the canvas").
+
+**What to do with the result:**
+
+- **Both PASS** → proceed to Phase 2.
+- **Any FAIL** → revise the brief, re-show the brief block (don't re-run Gate B — one pass is enough). In Manual mode, surface the FAILs to the user and let them decide whether to apply the fix. In Auto/Semi-auto, apply fixes silently with a one-line note ("tightened brief: switched palette from Flexoki cream to Obsidian dark-purple to match product identity").
 
 ---
 
@@ -343,6 +390,30 @@ Aesthetic / legibility / loop-duration / palette concerns are **not** Gate B's j
 
 Keep this phase conversational. The goal is to converge on a version the user loves before spending time on export.
 
+### 3.0a Render self-critique (before showing the user)
+
+**Do this every time** before presenting any rendered hero artifact (HTML preview screenshot, exported PNG, exported GIF) to the user. Skipping it makes the user the QA pass — that burns trust.
+
+**The procedure:**
+
+1. **Read the rendered file** (use the Read tool on the PNG/GIF, or take a screenshot of the HTML preview) — actually look at it, not just the source.
+2. **Write 3–5 honest critique bullets to yourself** before composing the user-facing message. Look specifically for:
+   - **Text overflows / wraps** — chips wrapping into the wrong row, headlines breaking awkwardly, labels clipping the stage edge.
+   - **Overlapping or colliding elements** — two pieces of copy occupying the same visual zone (e.g. a meta strip stacked on top of a ghost label stacked on top of a graph node label).
+   - **Redundant copy across regions** — eyebrow and meta and chips all repeating the same word (e.g. "spec" appearing three times).
+   - **Scope-claim mismatches** — image says "all" / shows a grid of N items, real inventory is bigger or smaller.
+   - **Color/vibe drift from the locked brief** — the rendered output looks more muted, busier, or more generic than the brief promised.
+   - **Wow check** (carry-over from §1.8b) — is there still one anchor move that makes a viewer stop scrolling, or did it get washed out in execution?
+3. **Fix anything obvious in the bullets**, re-render, and read it again.
+4. **Only then** present to the user, and proactively call out any issues you noticed but chose not to fix yet ("`obsidian-markdown` wraps to two lines in its card — can tighten the type if you want, otherwise leaves it").
+
+**This applies in every operating mode.** Auto and Semi-auto skip *optional questions to the user*, not *quality gates against the artifact*. If anything, Auto's "ship fast" pace makes the self-critique gate more important, not less, because there's no preview round to catch the issues for you.
+
+**Real incidents this prevents:**
+
+- A static PNG shipped with: a `web defuddle` chip wrapping into a second row that overlapped the graph SVG, three competing pieces of text crowding the top-right corner (meta + ghost wikilink + node label), and a "graph view" footnote colliding with the chip row. All three would have been caught by one honest look at the rendered file.
+- A first-pass hero shipped with the right facts but no compositional anchor — drew "I don't feel wow when first see it" from the user. Earlier render-time critique combined with §1.8b's wow check would have caught it before the user did.
+
 ### 3.1 Open in browser
 
 After writing `index.html`, **give the user the command** to open it themselves (their browser, their timing):
@@ -369,7 +440,8 @@ Don't ask about colors/fonts/spacing on the first round. Polish comes after shap
 - Each round: Claude edits, user refreshes, one sentence of reaction.
 - After shape converges, switch to polish rounds: type hierarchy, color calibration, micro-timing, loop seam.
 - If user gives vague feedback ("feels off"), ask **one pointed question** to narrow it — don't guess.
-- **Style stuck? Invoke `frontend-design`.** If the user has gone back-and-forth on *style* (palette, type, overall aesthetic, visual language) for **3+ rounds** without converging — or says something like "still not it" / "try a totally different direction" — stop tweaking in place. Invoke the `frontend-design` skill via the `Skill` tool to get a fresh, high-quality design pass. Pass it the brief, the repo scan summary, the current `index.html`, and a plain-language description of what's not working. Use its output as the new starting point, then return to this iteration loop. Don't invoke it for pacing, timing, or animation-logic feedback — only when the blocker is *visual design quality*.
+- **Iterate on HTML, not on exports.** During the iteration phase, edit `index.html` and let the user preview via their browser (`open .../index.html`). Do **not** re-run the Puppeteer screenshot / GIF export on every round — it burns time and tokens for no gain since the browser preview is the source of truth for layout and color. Export *once* at the end on the ship signal (and once mid-build only if §3.4 GIF sanity check applies). If the user explicitly asks for a fresh PNG/GIF mid-iteration (e.g. to share a draft externally), that's the only reason to re-export before ship.
+- **Style stuck? Invoke `frontend-design` — and offer it proactively.** If the user has gone back-and-forth on *style* (palette, type, overall aesthetic, visual language) for **3+ rounds** without converging — or says something like "still not it" / "try a totally different direction" — stop tweaking in place. In Manual mode, ask the user before invoking. In Semi-auto/Auto, **proactively surface the option** ("we've done 3 style rounds without converging — want me to invoke `frontend-design` for a fresh design pass, or keep iterating?") rather than silently continuing to tweak. Don't wait for the user to remember the option exists; the rule says you suggest it. Pass `frontend-design` the brief, the repo scan summary, the current `index.html`, and a plain-language description of what's not working. Use its output as the new starting point, then return to this iteration loop. Don't invoke it for pacing, timing, or animation-logic feedback — only when the blocker is *visual design quality*.
 
 ### 3.4 Mid-build GIF sanity check *(only if GIF is a target output)*
 
@@ -445,6 +517,14 @@ Based on the format decided in §1.4c:
 - Static   → `repo-visuals-work/<repo-name>/hero.png`
 
 Keep in the scratch dir until Phase 5 (Output) moves it.
+
+### 4.4a Render self-critique (post-export)
+
+After every export — PNG, GIF, or otherwise — **re-run §3.0a on the exported file**, not just the HTML preview. The export pipeline can introduce its own failure modes (GIF quantization blurs small text, palette banding, retina vs non-retina rendering differences, ffmpeg seam glitches) that don't show up in the HTML.
+
+The discipline is the same: Read the file, write 3–5 honest critique bullets, fix obvious issues, re-export, then present. Do not show the exported artifact to the user until §3.0a-style critique has run on it.
+
+If the post-export critique surfaces an issue that requires HTML changes (not just an encode tweak), go back to Phase 3 to fix the source — don't try to patch around it in the export step.
 
 ---
 
