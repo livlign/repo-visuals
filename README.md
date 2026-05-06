@@ -8,6 +8,8 @@ Claude Code plugins for working with GitHub repos — designing README heroes, a
 /plugin marketplace add livlign/claude-skills
 ```
 
+> Already added the marketplace? Run `/plugin marketplace update livlign` to pick up newly-published plugins (e.g. `repo-doctor`) and version bumps.
+
 ### Recent heroes shipped
 
 <table>
