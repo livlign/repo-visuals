@@ -526,6 +526,7 @@ Based on the format decided in §1.4c:
   3. Confirm no external `<image href>` URLs — embed any raster as `data:` URI or rebuild as vector.
   4. Render via `<img src="index.svg">` in a throwaway `preview.html` and visually confirm the animation matches the direct-open preview.
   5. Check file size — target ≤ 200 KB, hard cap 500 KB. Over budget usually means an embedded raster doesn't belong; reconsider format or extract the raster.
+  - For terminal/UI demos with **per-character typewriter typing** (cmder-style heroes), hand-authoring the SMIL keyTimes is unmaintainable. Switch to a generator script (`build-svg.js`) that mirrors the HTML's `COMMANDS` data — full ruleset (CSS-vs-SMIL, `calcMode="discrete"`, caret structure, verification protocol) in `craft/svg-animation.md`. Read that file before writing any generator code.
 - **HTML only** → skip Phase 4 entirely; the hand-off is `repo-visuals-work/<repo-name>/index.html`.
 
 `scripts/capture.js` (GIF) and `scripts/screenshot.js` (PNG) wrap the recipes; both default to 2× retina and accept `--width` / `--height`. Don't hardcode 1200×675 in invocations — pass what the brief locked in. Animated SVG has no capture script — the file is hand-authored and shipped as-is.
