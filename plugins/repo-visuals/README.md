@@ -1,8 +1,8 @@
 # repo-visuals
 
-![repo-visuals — a Claude Code plugin that turns any repo into a bespoke hero visual. Scans, proposes scenarios, renders animated GIF or static PNG. 5 phases, 3 operating modes, 3 output formats.](./assets/hero.gif)
+![repo-visuals — a Claude Code plugin that turns any repo into a bespoke hero visual. Scans, proposes scenarios, renders animated GIF, static PNG, or animated SVG.](./assets/hero.gif)
 
-A Claude Code plugin for designing **bespoke GitHub README hero visuals** — **animated GIF** or **static PNG** — for any open-source repository.
+A Claude Code plugin for designing **bespoke GitHub README hero visuals** — **animated GIF**, **static PNG**, or **animated SVG** — for any open-source repository.
 
 The plugin scans the target repo, recommends a format that fits its identity (terminal demo, product UI, brand-first wordmark, banner, diagram-as-hero), generates bespoke HTML through a structured discovery dialog, previews it in your browser, and exports a retina-quality artifact ready to drop into the README.
 
@@ -110,7 +110,7 @@ Every run, the skill asks which mode to use. This is about **how many decisions 
 | Mode | What **you** decide | What **Claude** decides silently | Phase 6 scorecard | Typical back-and-forths |
 |---|---|---|---|---|
 | **Auto** | nothing | everything (format, scenario, vibe, audience, dimensions, copy, ship) | Code + AI + Claude rows only (no User ratings) | 0 |
-| **Semi-auto** _(default)_ | output format (GIF/PNG/HTML), one preview-and-iterate review | scenario, vibe, audience, dimensions, copy | full 4-rater scorecard | ~3 |
+| **Semi-auto** _(default)_ | output format (GIF/PNG/SVG/HTML), one preview-and-iterate review | scenario, vibe, audience, dimensions, copy | full 4-rater scorecard | ~3 |
 | **Manual** | every decision point | nothing (Claude still suggests and recommends) | full 4-rater scorecard | 8–12 |
 
 Any mode can be upgraded mid-run — say *"stop, switch to semi"* and Claude resumes from the nearest unanswered decision point.
@@ -121,6 +121,6 @@ Any mode can be upgraded mid-run — say *"stop, switch to semi"* and Claude res
 
 - [`skills/repo-visuals/SKILL.md`](./skills/repo-visuals/SKILL.md) — main skill (discovery → build → preview → export → output → evaluate).
 - [`skills/repo-visuals/craft/`](./skills/repo-visuals/craft/) — headline patterns, reference gallery, template HTML.
-- [`skills/repo-visuals/scripts/`](./skills/repo-visuals/scripts/) — `capture.js` (GIF), `screenshot.js` (PNG), `evaluate.js` (code-evaluated scorecard).
+- [`skills/repo-visuals/scripts/`](./skills/repo-visuals/scripts/) — `capture.js` (GIF), `screenshot.js` (PNG), `evaluate.js` (code-evaluated scorecard). Animated SVG has no capture script — the source `.svg` file is hand-authored and shipped as-is.
 - [`skills/repo-visuals-retro/SKILL.md`](./skills/repo-visuals-retro/SKILL.md) — retrospective meta-skill, on-demand.
 - [`SHOWCASE.md`](./SHOWCASE.md) — merged hero visuals produced with this skill; open a PR to add yours.

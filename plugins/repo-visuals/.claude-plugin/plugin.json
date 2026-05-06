@@ -1,9 +1,9 @@
 {
   "name": "repo-visuals",
-  "version": "0.1.4",
-  "description": "Designs bespoke GitHub README hero visuals — animated GIF or static PNG — through a structured discovery dialog. Retina capture, scope-matched copy, optional upstream PR.",
+  "version": "0.1.5",
+  "description": "Designs bespoke GitHub README hero visuals — animated GIF, static PNG, or animated SVG — through a structured discovery dialog. Retina capture, scope-matched copy, optional upstream PR.",
   "author": { "name": "livlign" },
   "homepage": "https://github.com/livlign/claude-skills",
   "repository": "https://github.com/livlign/claude-skills",
-  "keywords": ["readme", "readme-hero", "readme-banner", "hero-gif", "hero-image", "github", "open-source", "visualization", "puppeteer", "ffmpeg"]
+  "keywords": ["readme", "readme-hero", "readme-banner", "hero-gif", "hero-image", "hero-svg", "animated-svg", "github", "open-source", "visualization", "puppeteer", "ffmpeg"]
 }

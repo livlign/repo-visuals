@@ -51,7 +51,7 @@ Claude Code plugins for working with GitHub repos — designing README heroes, a
 
 | Plugin | Install | What it does |
 |---|---|---|
-| [repo-visuals](./plugins/repo-visuals) | `/plugin install repo-visuals@livlign` | Designs bespoke README hero visuals — animated GIF or static PNG — through a structured discovery dialog. |
+| [repo-visuals](./plugins/repo-visuals) | `/plugin install repo-visuals@livlign` | Designs bespoke README hero visuals — animated GIF, static PNG, or animated SVG — through a structured discovery dialog. |
 | [repo-doctor](./plugins/repo-doctor) | `/plugin install repo-doctor@livlign` | Audits a repo's README against best-practice patterns and produces a prioritized P0/P1/P2 punch list of fixes. |
 
 ---

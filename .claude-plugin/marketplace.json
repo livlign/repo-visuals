@@ -5,9 +5,9 @@
     {
       "name": "repo-visuals",
       "source": "./plugins/repo-visuals",
-      "description": "Designs bespoke GitHub README hero visuals — animated GIF or static PNG — through a structured discovery dialog. Retina capture, scope-matched copy, optional upstream PR.",
-      "version": "0.1.4",
-      "keywords": ["readme", "readme-hero", "readme-banner", "hero-gif", "hero-image", "github", "open-source", "visualization", "puppeteer", "ffmpeg"]
+      "description": "Designs bespoke GitHub README hero visuals — animated GIF, static PNG, or animated SVG — through a structured discovery dialog. Retina capture, scope-matched copy, optional upstream PR.",
+      "version": "0.1.5",
+      "keywords": ["readme", "readme-hero", "readme-banner", "hero-gif", "hero-image", "hero-svg", "animated-svg", "github", "open-source", "visualization", "puppeteer", "ffmpeg"]
     },
     {
       "name": "repo-doctor",

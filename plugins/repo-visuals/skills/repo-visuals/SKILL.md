@@ -1,11 +1,11 @@
 ---
 name: repo-visuals
-description: Create hero visuals — animated GIF or static PNG — for GitHub repositories. Runs a structured discovery conversation (scan repo → recommend format → propose creative scenarios → agree on a brief), then designs bespoke HTML, previews it in the browser, and exports. Use when the user asks for a README hero, repo banner, README image, GitHub header, social preview card, repo demo GIF, hero image, OG image, project screenshot, repository showcase, or any "image at the top of the README".
+description: Create hero visuals — animated GIF, static PNG, or animated SVG — for GitHub repositories. Runs a structured discovery conversation (scan repo → recommend format → propose creative scenarios → agree on a brief), then designs bespoke HTML/SVG, previews it in the browser, and exports. Use when the user asks for a README hero, repo banner, README image, GitHub header, social preview card, repo demo GIF, hero image, OG image, project screenshot, repository showcase, or any "image at the top of the README".
 ---
 
 # repo-visuals
 
-Turn a repo (GitHub URL, local folder, or free-text brief) into a hero visual that a viewer sees at the top of the README and instantly understands *what this project does and why it's interesting*. The hero may be an **animated GIF** or a **static PNG** — the skill recommends one based on the repo's identity, the user picks.
+Turn a repo (GitHub URL, local folder, or free-text brief) into a hero visual that a viewer sees at the top of the README and instantly understands *what this project does and why it's interesting*. The hero may be an **animated GIF**, a **static PNG**, or an **animated SVG** — the skill recommends one based on the repo's identity, the user picks.
 
 The skill's quality comes from the **discovery dialog**, not from templates. Every hero is bespoke.
 
@@ -14,7 +14,7 @@ The skill's quality comes from the **discovery dialog**, not from templates. Eve
 1. **Discovery** — pick operating mode (Auto / Semi-auto / Manual, §1.1a), scan the repo, summarize findings, recommend a format (animated vs static), ask about vibe/audience/hero moment, propose 2–3 scenarios, converge on a brief. Then **Gate A — brief vs README** (§1.8): narrow repo-context check on the brief before any pixels exist. The mode controls *how many* of these the user answers vs. Claude decides silently — it does not skip any of the craft checks.
 2. **Build** — write HTML/CSS/JS for the chosen scenario. For static, design one decisive frame; for animated, a loop. No storyboard step. Then **Gate B — rendered HTML vs README** (§2.6): sample keyframes from the HTML, check what's on screen against the repo's own positioning, allow 1 auto-iteration if it fails. Both gates are deliberately narrow — only repo-context fidelity, not aesthetics or craft.
 3. **Preview & iterate** — open the HTML in the user's default browser, iterate in text until the user says ship.
-4. **Export** — animated → Puppeteer screencast + ffmpeg palette pipeline to GIF. Static → Puppeteer `page.screenshot` to PNG (with `deviceScaleFactor: 2` for retina crispness).
+4. **Export** — animated GIF → Puppeteer screencast + ffmpeg palette pipeline. Static PNG → Puppeteer `page.screenshot` (with `deviceScaleFactor: 2` for retina crispness). Animated SVG → author the SVG directly (CSS `@keyframes` or SMIL `<animate>` inside the file); no rasterization step — the source *is* the artifact.
 5. **Output** — place the hero in the target repo; optionally open a PR that embeds it in the README.
 
 **Dev mode (author-only):** Phase 6 — Evaluate exists but **only runs in dev mode**. Dev mode is for the skill's author iterating on the skill itself; it collects scorecard data and writes run logs under `./evaluations/` in the user's current working directory. Enable it only when the user explicitly says "dev mode" (or sets `REPO_VISUALS_DEV=1`). In every normal run — including Manual, Semi-auto, and Auto — the skill ends after Phase 5. Do not mention Phase 6 to end users.
@@ -83,7 +83,7 @@ If the scan surfaced an existing hero, branch into the redesign protocol *before
 Ask these as a structured batch, with suggested defaults based on what the scan found so the user can just accept or redirect:
 
 1. **Where will this hero live?** — README top / project website / social posts (Twitter, LinkedIn) / conference slide / internal demo / elsewhere. *This drives dimensions and loop length.*
-2. **Output format?** — **animated GIF** / **static image (PNG)** / **HTML only (no export)**. Not every repo wants motion; some strong identities read better as one sharp frame. Scan the repo first and offer a recommendation (see §1.4c), then let the user override. Default: whichever §1.4c recommends. *(MP4/WebM and square social cards are listed in the future-formats appendix.)*
+2. **Output format?** — **animated GIF** / **static image (PNG)** / **animated SVG** / **HTML only (no export)**. Not every repo wants motion; some strong identities read better as one sharp frame; some content (vector UI, type, simple geometry) renders sharper, smaller, and theme-aware as SVG. Scan the repo first and offer a recommendation (see §1.4c), then let the user override. Default: whichever §1.4c recommends. *(MP4/WebM and square social cards are listed in the future-formats appendix.)*
 3. **Audience** — working devs / eng leaders / newcomers / prospective contributors / all
 4. **Vibe** — minimal, playful, technical, cinematic, retro-terminal, brutalist, polished-SaaS
 5. **Energy** — calm & meditative / steady / frenetic & showy
@@ -121,6 +121,14 @@ The repo's identity tells you which format fits:
 - The hero moment is "watch this happen," not "see this exists."
 - The scan surfaces multiple distinct capabilities worth walking through (then: animated; or: static grid).
 
+**Lean animated SVG when:**
+- The hero is **vector-friendly**: typography-led, UI chrome, simple geometric motion, line-art mascots, terminal/code-style heroes without raster screenshots or photographs.
+- File-size matters and the content is mostly shapes + text — animated SVG often lands 5–50× smaller than the equivalent GIF and stays crisp at any zoom (no palette banding, no sub-pixel text smear).
+- Theme-aware rendering is wanted (light/dark via `<picture>` swap or `prefers-color-scheme` media queries inside the SVG).
+- Motion is expressible as property animation (transform, opacity, stroke-dashoffset, path morphs, simple keyframe sequences) — *not* per-frame raster effects, particle systems, blend-mode-heavy compositing, or anything that needed JS timing in the HTML version.
+- Hard constraints from GitHub: SVG must be loaded via `<img src="...">` (inline `<svg>` is sanitized out of READMEs); **no `<script>`** survives the sanitizer, so motion is CSS `@keyframes` or SMIL `<animate>` only; no pointer/hover interaction (image embed gets no events); external resources (fonts, fetched images) are blocked, so embed everything.
+- **Skip SVG if** the hero needs a real screenshot, photograph, dense gradients (size win evaporates once raster is embedded), or JS-driven scene sequencing.
+
 **Lean HTML-only when:**
 - The user will embed on a site they control and wants the live animation.
 - The user explicitly wants to iterate further with their own tools.
@@ -154,7 +162,7 @@ Move to the build phase when all six are settled:
 - [ ] Audience named
 - [ ] Hard constraints captured (or confirmed "none")
 - [ ] "What NOT to imply" list captured (or confirmed "none") — used by Gate A (§1.8)
-- [ ] Output format chosen (animated GIF / static PNG / HTML only)
+- [ ] Output format chosen (animated GIF / static PNG / animated SVG / HTML only)
 - [ ] Placement agreed (README / website / social / slide / other)
 - [ ] Duration chosen — animated only (typical: 15–25s loop; default 20s); skip for static
 - [ ] Dimensions confirmed (see §1.7 — default 1200×675; tailor when the repo spirit calls for it)
@@ -272,9 +280,12 @@ Default layout — always nest per-repo under a subdirectory named after the tar
 
 ```
 <current-dir>/repo-visuals-work/<repo-name>/
-  index.html        # the hero animation source
+  index.html        # the hero animation source (GIF / PNG / HTML formats)
+  index.svg         # the hero source when format is animated SVG (single file, self-contained)
   assets/           # any images/SVGs the scenario needs
 ```
+
+For **animated SVG**, author `index.svg` directly as a single self-contained file — `<style>` block with CSS `@keyframes` (or SMIL `<animate>` elements) inside the SVG, all fonts embedded as `@font-face` data URIs (Google Fonts loads at render time and won't survive GitHub's `<img>` sandbox), no external assets, no `<script>`. Open the file directly in a browser to preview — the same animation that plays locally will play when GitHub embeds it via `<img>`.
 
 Use `repo-visuals-work/<repo-name>/` so the scratch files stay obviously separate from the target repo **and** runs for different repos don't clobber each other. Never write directly into `repo-visuals-work/` — always into the repo-named subfolder. If no obvious repo name, use a short slug derived from the brief.
 
@@ -453,7 +464,9 @@ GIF quantization causes specific failures that HTML preview hides: small text bl
 
 If problems appear, tune the HTML (bigger type, fewer palette neighbors, simpler gradients) and keep iterating on the preview.
 
-**Skip this section entirely if the output is not a GIF** (MP4/WebM preserve HTML fidelity; static outputs are sampled directly).
+**Skip this section entirely if the output is not a GIF** (MP4/WebM preserve HTML fidelity; static outputs are sampled directly; animated SVG renders identically to the source — no quantization).
+
+**Animated SVG sanity check (replaces the GIF check when SVG is the chosen format):** open the `index.svg` file as `<img src="index.svg">` inside a throwaway `preview.html` (not by opening the SVG directly — that path uses the document context, not the image-embed sandbox GitHub uses). Confirm: animations play, fonts render (if any are embedded), no console errors, no broken external references. If anything renders only when opened directly but not via `<img>`, you've leaked a script tag, an external font URL, or a hover-driven animation — fix in the source, re-test.
 
 ### 3.5 Stop signal
 
@@ -507,14 +520,21 @@ Based on the format decided in §1.4c:
 
 - **Animated GIF** → run the GIF pipeline. Recipe in `craft/export.md`.
 - **Static PNG** → run the static pipeline. Recipe in `craft/export.md`.
+- **Animated SVG** → no rasterization step. The `index.svg` authored in Phase 2 *is* the artifact. Validate it before hand-off:
+  1. Strip any `<script>` tags (sanitizer drops them anyway; cleaner to remove now).
+  2. Confirm every font is embedded as `@font-face` data URI — no `https://fonts.googleapis.com/...` imports.
+  3. Confirm no external `<image href>` URLs — embed any raster as `data:` URI or rebuild as vector.
+  4. Render via `<img src="index.svg">` in a throwaway `preview.html` and visually confirm the animation matches the direct-open preview.
+  5. Check file size — target ≤ 200 KB, hard cap 500 KB. Over budget usually means an embedded raster doesn't belong; reconsider format or extract the raster.
 - **HTML only** → skip Phase 4 entirely; the hand-off is `repo-visuals-work/<repo-name>/index.html`.
 
-`scripts/capture.js` (GIF) and `scripts/screenshot.js` (PNG) wrap the recipes; both default to 2× retina and accept `--width` / `--height`. Don't hardcode 1200×675 in invocations — pass what the brief locked in.
+`scripts/capture.js` (GIF) and `scripts/screenshot.js` (PNG) wrap the recipes; both default to 2× retina and accept `--width` / `--height`. Don't hardcode 1200×675 in invocations — pass what the brief locked in. Animated SVG has no capture script — the file is hand-authored and shipped as-is.
 
 ### 4.3 Output file name
 
-- Animated → `repo-visuals-work/<repo-name>/hero.gif`
-- Static   → `repo-visuals-work/<repo-name>/hero.png`
+- Animated GIF → `repo-visuals-work/<repo-name>/hero.gif`
+- Static PNG   → `repo-visuals-work/<repo-name>/hero.png`
+- Animated SVG → `repo-visuals-work/<repo-name>/hero.svg` (rename of validated `index.svg`)
 
 Keep in the scratch dir until Phase 5 (Output) moves it.
 
